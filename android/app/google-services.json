@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "65256485239",
+    "firebase_url": "https://fappymanagement.firebaseio.com",
+    "project_id": "fappymanagement",
+    "storage_bucket": "fappymanagement.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:65256485239:android:6c37160997c140a7577172",
+        "android_client_info": {
+          "package_name": "com.fappy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "65256485239-mkpt7g6sfrlgg82fb8ukj0mo043jfv1g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtbEQP3BO4HXjT7M5xWv93XYWFoy-43BI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "65256485239-mkpt7g6sfrlgg82fb8ukj0mo043jfv1g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
