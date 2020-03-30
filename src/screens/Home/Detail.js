@@ -5,23 +5,55 @@ import { Icon } from 'react-native-elements'
 import format from '../../until/dateFomrter'
 import ListDish from '../../components/Home/ListDish'
 import TitleSection from '../../components/Home/TitleSection'
+import ModalNotification from '../../components/Home/ModalNotification'
 import navigateTo from '../../until/navigateTo'
-export default class Detail extends Component {
+import firebase from 'react-native-firebase'
+import moment from 'moment'
+import { connect } from 'react-redux'
+class Detail extends Component {
     constructor(props) {
         super(props);
         const { item } = props;
         this.state = {
-            relatedDishes: [item, item, item, item]
+            relatedDishes: [item, item, item, item],
+            addedToCart: false,
+            haveError: false,
+            message: '',
+            existSeller: false,
+            keyCart: ''
         }
     }
+    // componentDidMount() {
+    //     setInterval(() => {
+    //         this.calTimeUsed();
+    //     }, 1000)
+    // }
+
     navigateToDetail = item => {
         navigateTo({ item }, this.props.componentId, 'Detail');
     };
 
     navigateToResDetail = () => {
-        console.log("Rss detail");
+        const { id, name } = this.props.sellerInfo;
+        // var page = "";
+        // if (id.includes("RES")) {
+        //     page = "RestaurantDetail"
+        // } else page = "RestaurantDetail"
 
-        navigateTo(null, this.props.componentId, 'RestaurantDetail');
+        navigateTo(this.props.sellerInfo, this.props.componentId, 'RestaurantDetail', {
+            title: {
+                text: name,
+                alignment: 'center'
+            }
+        });
+    }
+
+    calTimeUsed = () => {
+        const { createAt, timeUsed } = this.props.item;
+        var now = moment();
+        var hours = moment(moment(createAt, "hh:mm").diff(moment(now, "hh:mm"))).format("hh:mm");
+        var hoursUsed = moment(moment(hours, "hh:mm").diff(moment(timeUsed, "hh:mm"))).format("hh:mm");
+        return hoursUsed
     }
 
     navigateToSeeAll = () => {
@@ -29,11 +61,72 @@ export default class Detail extends Component {
         navigateTo({ data: relatedDishes }, this.props.componentId, 'SeeAll');
     };
 
+    addToCart = () => {
+        const { id } = this.props.user;
+
+        var refCart = firebase.database().ref('carts');
+        refCart.orderByChild("userId")
+            .equalTo(id).once('value')
+            .then(snapshot => {
+                if (snapshot.val()) {
+                    var { items, sellerId } = Object.values(snapshot.val())[0];
+                    if (sellerId != this.props.sellerInfo.id) {
+                        this.setModalVisibleExistSeller();
+                    } else {
+                        var existPro = items.find(item => item.id == this.props.item.id);
+                        if (existPro) {
+                            this.setModalVisibleHaveError("Sản phẩm này đã có trong giỏ hàng");
+                        } else {
+                            items.push(this.props.item);
+                            var keyCart = Object.keys(snapshot.val());
+                            this.setState({
+                                keyCart
+                            })
+                            refCart.child(keyCart).update({ items });
+                            this.completedAddToCart();
+                        }
+                    }
+                } else {
+                    refCart.push({ userId: id, sellerId: this.props.sellerInfo.id, items: [this.props.item] });
+                    this.completedAddToCart();
+
+                }
+            })
+    }
+
+    deleteBeforeAdd = () => {
+        this.setModalVisibleExistSeller();
+        const { id } = this.props.user;
+        const { keyCart } = this.state;
+        var refCart = firebase.database().ref('carts').child(keyCart).remove();
+        this.addToCart();
+    }
+
+    setModalVisibleHaveError = (message = '') => {
+        this.setState(prevState => ({
+            haveError: !prevState.haveError,
+            message
+        }))
+    }
+
+    completedAddToCart = () => {
+        this.setState(prevState => ({
+            addedToCart: !prevState.addedToCart
+        }))
+    }
+
+    setModalVisibleExistSeller = () => {
+        this.setState(prevState => ({
+            existSeller: !prevState.existSeller
+        }))
+    }
+
     render() {
         const { item } = this.props;
-        const { image, name, sellerName, quantity, price, starRating, createAt } = item;
-        console.log("Star", starRating);
-        const { relatedDishes } = this.state;
+        const { image, name, sellerName, quantity, price, createAt, timeUsed } = item;
+        const { starRating } = this.props.sellerInfo;
+        const { relatedDishes, haveError, addedToCart, message, existSeller } = this.state;
+
         return (
             <View>
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -83,26 +176,24 @@ export default class Detail extends Component {
                             <Text style={styles.sellerName}>{format(createAt)}</Text>
                         </View>
                         <View>
-                            <Text><Text style={styles.sellerName}>Còn khả dụng:</Text> 3 giờ</Text>
+                            <Text><Text style={styles.sellerName}>Còn khả dụng:</Text> {this.calTimeUsed()}</Text>
                         </View>
 
                         <TouchableOpacity onPress={this.navigateToResDetail}>
-                            <Text style={styles.sellerName}>{sellerName}</Text>
+                            <Text style={styles.sellerName}>{this.props.sellerInfo.name}</Text>
                         </TouchableOpacity>
                         <StarIcon star={starRating} />
                     </View>
                     <TitleSection type="Món tương tự" data={relatedDishes} navigateToSeeAll={this.navigateToSeeAll}></TitleSection>
                     <ListDish flex='row' horizontal={false} data={relatedDishes} navigateToDetail={this.navigateToDetail}></ListDish>
-                    {/* <ModalAddCart
-                        modalVisible={modalVisible}
-                        setModalVisible={this.setModalVisible}
-                        text='Bạn cần đăng nhập để thực hiện chức năng này'
-                        textButton='Đăng nhập'
-                        textButton2='Lúc khác'
-                        navigateToCall={this.showLogin}
+                    <ModalNotification
+                        modalVisible={haveError}
+                        setModalVisible={this.setModalVisibleHaveError}
+                        text={message}
+                        textButton2='Đã hiểu'
                     >
-                    </ModalAddCart>
-                    <ModalAddCart
+                    </ModalNotification>
+                    <ModalNotification
                         modalVisible={addedToCart}
                         setModalVisible={this.completedAddToCart}
                         text='Thêm vào giỏ hàng thành công'
@@ -110,7 +201,16 @@ export default class Detail extends Component {
                         textButton2='Lúc khác'
                         navigateToCall={this.navigateToCart}
                     >
-                    </ModalAddCart> */}
+                    </ModalNotification>
+                    <ModalNotification
+                        modalVisible={existSeller}
+                        setModalVisible={this.setModalVisibleExistSeller}
+                        text='Bạn có chắc chắn muốn xóa giỏ hàng cũ không'
+                        textButton='Có'
+                        textButton2='Không'
+                        navigateToCall={this.deleteBeforeAdd}
+                    >
+                    </ModalNotification>
                 </ScrollView>
                 <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
                     <TouchableOpacity style={styles.btnAddToCart} onPress={this.addToCart}>
@@ -157,3 +257,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#F2A90F"
     },
 });
+
+const mapStateToProps = (state) => {
+    return {
+        user: state.authReducer.user
+    }
+}
+export default connect(mapStateToProps, null)(Detail)

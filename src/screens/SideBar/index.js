@@ -57,22 +57,12 @@ class SideBar extends Component {
           >
             <Icon
               type="font-awesome"
-              name="list-alt"
+              name="handshake-o"
               color='#F2A90F'
             />
-            <Text style={styles.menuTitle}>Lịch sử</Text>
+            <Text style={styles.menuTitle}>Trở thành đối tác</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menu}
-            onPress={this.handleOpenSettings}
-          >
-            <Icon
-              type="feather"
-              name="settings"
-              color='#F2A90F'
-            />
-            <Text style={styles.menuTitle}>Cài đặt</Text>
-          </TouchableOpacity>
+          
           <TouchableOpacity
             style={styles.menu}
             onPress={this.props.onLogout}

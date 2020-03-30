@@ -29,7 +29,6 @@ class Auth extends Component {
     render() {
         const { isLogin, modalVisible } = this.state;
         const { isAuthenticated } = this.props.data;
-        console.log("Is: ", isAuthenticated);
         
         if (isAuthenticated) {
             Navigation.setRoot({

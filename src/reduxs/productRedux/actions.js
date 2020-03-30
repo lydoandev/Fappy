@@ -1,11 +1,11 @@
-export const FETCH_HOME = "FETCH_HOME"
-export const FETCH_HOME_SUCCESSED = "FETCH_HOME_SUCCESSED"
+export const FETCH_CART = "FETCH_CART"
+export const FETCH_CART_SUCCESSED = "FETCH_CART_SUCCESSED"
 
-export const fetchHome = () => {
-    return { type: FETCH_HOME}
+export const fetchCart = (userId) => {
+    return { type: FETCH_CART, payload: userId}
 }
 
 
-export const fetchHomeSuccessed = () => {
-    return { type: FETCH_HOME_SUCCESSED}
+export const fetchCartSuccessed = (cart) => {
+    return { type: FETCH_CART_SUCCESSED, payload: cart}
 }

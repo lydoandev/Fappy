@@ -11,9 +11,9 @@ import Profile from './src/screens/Profile'
 import Detail from './src/screens/Home/Detail'
 import SeeAll from './src/screens/Home/SeeAll'
 import RestaurantDetail from './src/screens/Home/RestaurantDetail'
+import MarketerDetail from './src/screens/Home/MarketerDetail'
 import Auth from './src/screens/Auth'
 console.disableYellowBox = true;
-import bottomTabs from './src/config/bottomTabs'
 
 import SideBar from './src/screens/SideBar'
 
@@ -24,18 +24,11 @@ Navigation.registerComponent("ProfileScreen", () => ReducerComponent(Profile), (
 Navigation.registerComponent("Detail", () => ReducerComponent(Detail), () => Detail)
 Navigation.registerComponent("SeeAll", () => ReducerComponent(SeeAll), () => SeeAll)
 Navigation.registerComponent("RestaurantDetail", () => ReducerComponent(RestaurantDetail), () => RestaurantDetail)
+Navigation.registerComponent("MarketerDetail", () => ReducerComponent(MarketerDetail), () => MarketerDetail)
 Navigation.registerComponent("Auth", () => ReducerComponent(Auth), () => Auth)
 
 Navigation.registerComponent("SideBar", () => ReducerComponent(SideBar), () => SideBar)
 
-// Navigation.setRoot({
-//   root: {
-//     // component: {
-//     //   name: 'HomeScreen',
-//     // }
-//     bottomTabs,
-//   }
-// });
 
 function ReducerComponent(Component) {
   return props => (

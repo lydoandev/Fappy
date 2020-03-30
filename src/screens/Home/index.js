@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import firebase from 'react-native-firebase'
 
-import { Text, View, SectionList } from 'react-native'
+import { Text, View, SectionList, ScrollView, FlatList } from 'react-native'
 import ItemDish from '../../components/Home/ItemDish'
 import navigateTo from '../../until/navigateTo'
 import ListDish from '../../components/Home/ListDish'
@@ -11,36 +11,62 @@ import Sliders from '../../components/Home/Sliders'
 import { connect } from 'react-redux'
 import * as productActions from '../../reduxs/productRedux/actions'
 import Loading from "../../components/Home/Loading"
+import fetchData from '../../until/fetchData'
+import RestaurantItem from '../../components/Home/RestaurantItem'
+import IconCart from '../../components/Cart/IconCart'
 
 class Home extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: true,
-            products: []
+            loading: false,
+            products: [],
+            restaurants: [],
+            marketers: []
         }
         Navigation.events().bindComponent(this)
     }
 
-    componentDidMount() {
-        console.log("Voo nef");
+    componentDidMount = async () => {
 
-        const ref = firebase.database().ref("products")
-        var products = [];
-        ref.on('child_added', snapshot => {
+        this.setState({ loading: true })
+
+        const refPro = firebase.database().ref('products')
+        let products = [];
+        await refPro.on('child_added', snapshot => {
             products.push({ ...snapshot.val(), id: snapshot.key })
             this.setState({
                 products
             })
-
         })
 
+        const refRes = firebase.database().ref('restaurants')
+        let restaurants = [];
+        await refRes.on('child_added', snapshot => {
+            restaurants.push({ ...snapshot.val(), id: snapshot.key })
+            this.setState({
+                restaurants
+            })
+        })
+
+        const refMar = firebase.database().ref('marketers')
+        let marketers = [];
+        await refMar.on('child_added', snapshot => {
+            marketers.push({ ...snapshot.val(), id: snapshot.key })
+            this.setState({
+                marketers
+            })
+        })
+
+        this.props.fetchCart(this.props.user.id);
+
         setTimeout(() => this.setState({ loading: false }), 2000)
+
     }
 
     filterProduct = () => {
-        const { products } = this.state;
+        const { products, restaurants } = this.state;
         var data = [];
         var dishList = [];
         var ingredientList = [];
@@ -50,8 +76,7 @@ class Home extends Component {
                 dishList.push(item)
             } else ingredientList.push(item)
         })
-        console.log("Nguyên: ", ingredientList);
-        
+
         if (dishList.length > 0) {
             data.push({
                 type: "Món ăn",
@@ -83,10 +108,27 @@ class Home extends Component {
             console.log(error);
         }
     };
-    navigateToDetail = item => {
+
+    navigateToResDetail = (restaurant) => {
+        const { id, name } = restaurant;
+        var page = "";
+        // if (id.includes("RES")) {
+        //     page = "RestaurantDetail"
+        // } else page = "MarketerDetail"
+
+        navigateTo(restaurant, this.props.componentId, "RestaurantDetail", {
+            title: {
+                text: name,
+                alignment: 'center'
+            }
+        });
+    }
+
+    navigateToDetail = ({ item, sellerInfo }) => {
 
         navigateTo({
-            item
+            item,
+            sellerInfo
         }, this.props.componentId, 'Detail');
     };
 
@@ -100,6 +142,8 @@ class Home extends Component {
             });
     };
     render() {
+        console.log("Cart nè: ", this.props.cart);
+
         const images = [
             'https://chuphinhmonan.com/wp-content/uploads/2017/03/avalon-1.jpg',
             'https://dichvuvietbaiseo.vn/wp-content/uploads/2018/01/dich-vu-chup-anh-mon-an-cho-nha-hang-2.jpg',
@@ -117,10 +161,10 @@ class Home extends Component {
             createAt: 'Mon Feb 17 2020 16:27:08 GMT+0700'
         };
 
-        const { loading } = this.state;
-        var products = this.filterProduct();
-        console.log("Product: ", products);
+        const { loading, restaurants, marketers } = this.state;
 
+
+        var products = this.filterProduct();
         var listDishes = [item, item, item, item, item]
         const { isAuthenticated } = this.props;
         if (!isAuthenticated) {
@@ -140,26 +184,57 @@ class Home extends Component {
             )
         }
         return (
-            <View style={{ margin: 15, marginBottom: 150 }}>
-                <Sliders images={images}></Sliders>
-                <SectionList
-                    showsVerticalScrollIndicator={false}
-                    sections={products}
-                    keyExtractor={(item, index) => item + index}
-                    renderItem={item => (
-                        <ListDish horizontal={true} navigateToDetail={this.navigateToDetail} data={item.section.data[0].products} flex='column'></ListDish>
+            <>
+                <ScrollView showsVerticalScrollIndicator={false} style={{ margin: 15 }}>
+                    <Sliders images={images}></Sliders>
+                    <SectionList
+                        ListHeaderComponent={() => (
+                            <>
+                                <View style={{ marginBottom: 10 }}>
+                                    <Text style={{ fontSize: 18, marginBottom: 10 }}>Nhà hàng</Text>
+                                    <FlatList
+                                        data={restaurants}
+                                        horizontal={true}
+                                        renderItem={({ item }) => (
+                                            <RestaurantItem item={item} navigateToResDetail={this.navigateToResDetail} navigateToDetail={this.navigateToDetail}></RestaurantItem>
+                                        )}
+                                        keyExtractor={item => item.id}
+                                        showsHorizontalScrollIndicator={false}
+                                    />
+                                </View>
+                                <View style={{ marginBottom: 10 }}>
+                                    <Text style={{ fontSize: 18, fontWeight: '1500', marginBottom: 10 }}>Tiểu thương</Text>
+                                    <FlatList
+                                        data={marketers}
+                                        horizontal={true}
+                                        renderItem={({ item }) => (
+                                            <RestaurantItem item={item} navigateToResDetail={this.navigateToResDetail} navigateToDetail={this.navigateToDetail}></RestaurantItem>
+                                        )}
+                                        keyExtractor={item => item.id}
+                                        showsHorizontalScrollIndicator={false}
+                                    />
+                                </View>
+                            </>
+                        )}
+                        showsVerticalScrollIndicator={false}
+                        sections={products}
+                        keyExtractor={(item, index) => item + index}
+                        renderItem={item => (
+                            <ListDish horizontal={true} navigateToDetail={this.navigateToDetail} data={item.section.data[0].products} flex='column'></ListDish>
 
-                    )}
-                    renderSectionHeader={({ section: { type, data } }) => (
-                        <TitleSection
-                            type={type}
-                            data={data[0].products}
-                            navigateToSeeAll={this.navigateToSeeAll}
-                        />
-                    )}
+                        )}
+                        renderSectionHeader={({ section: { type, data } }) => (
+                            <TitleSection
+                                type={type}
+                                data={data[0].products}
+                                navigateToSeeAll={this.navigateToSeeAll}
+                            />
+                        )}
 
-                />
-            </View>
+                    />
+                </ScrollView>
+                {isAuthenticated && <IconCart cart={this.props.cart} />}
+            </>
         )
     }
 }
@@ -168,13 +243,14 @@ class Home extends Component {
 function mapStateToProps(state) {
     return {
         isAuthenticated: state.authReducer.isAuthenticated,
-        product: state.productReducer.data
+        user: state.authReducer.user,
+        cart: state.productReducer.cart
     };
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        loadProduct: () => dispatch(productActions.fetchHome())
+        fetchCart: (userId) => dispatch(productActions.fetchCart(userId))
     }
 }
 

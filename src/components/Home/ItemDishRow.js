@@ -19,7 +19,6 @@ export default class ItemDish extends Component {
   }
 
   openImageModal = () => {
-    console.log("Lu");
 
     this.setState(prevState => ({
       ...prevState,
@@ -35,7 +34,6 @@ export default class ItemDish extends Component {
   }
 
   navigateToDetail = () => {
-    console.log("Voo ddaay");
     
     this.props.navigateToDetail(this.props.item)
   }
@@ -44,7 +42,6 @@ export default class ItemDish extends Component {
     const { image, name, quantity, price, sellerName } = this.props.item;
     const { modalImageVisible } = this.state;
     var flex = 'column'
-    console.log("modal", modalImageVisible);
 
     return (
       <>

@@ -68,10 +68,17 @@ class LogIn extends Component {
         .then(snapshot => {
           if (snapshot.val()) {
             const user = Object.values(snapshot.val())[0];
-            console.log("user: ", user)
             if (user?.password == password) {
               this.setState({ message: '' })
-              this.props.loginSucceeded(user)
+              // firebase.database().ref('carts').orderByChild("userId")
+              //   .equalTo(user.id).once('value')
+              //   .then(snapshot => {
+              //     if (snapshot.val()) {
+              //       var { items, sellerId } = Object.values(snapshot.val())[0];
+              //       this.props.loginSucceeded(user, {cart: items, sellerId})
+              //     } else return {}
+              //   })
+              this.props.loginSucceeded(user);
             } else {
               this.setState({ message: 'Tên tài khoản hoặc mật khẩu không đúng' })
             }
@@ -90,7 +97,6 @@ class LogIn extends Component {
 
   render() {
     var { password, phone, phoneErr, passwordErr, loading, message } = this.state;
-    console.log("Load", loading);
 
     if (loading) {
       return (

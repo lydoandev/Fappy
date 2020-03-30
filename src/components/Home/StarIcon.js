@@ -4,8 +4,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 export default class StarIcon extends Component {
   render() {
     const { star } = this.props;
-    console.log("Star nef", star);
-    
 
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>

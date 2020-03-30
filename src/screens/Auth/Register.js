@@ -167,7 +167,6 @@ class Register extends Component {
           phone,
           password
         }
-        console.log("User: ", user);
         
         await userRef.child(key).update(user).then(() => {
           this.props.loginSuccessed(user)

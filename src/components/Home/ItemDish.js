@@ -22,7 +22,6 @@ export default class ItemDish extends Component {
   }
 
   openImageModal = () => {
-    console.log("Lu");
 
     this.setState(prevState => ({
       ...prevState,
@@ -47,11 +46,6 @@ export default class ItemDish extends Component {
       
   }
 
-  getInfoSeller = () => {
-    // const { sellerId } = this.props.item;
-    
-
-  }
 
   closeImage = () => {
     this.setState(prevState => ({
@@ -61,9 +55,8 @@ export default class ItemDish extends Component {
   }
 
   navigateToDetail = () => {
-    console.log("Voo ddaay");
 
-    this.props.navigateToDetail(this.props.item)
+    this.props.navigateToDetail({item: this.props.item, sellerInfo: this.state.sellerInfo})
   }
 
   render() {
@@ -72,7 +65,6 @@ export default class ItemDish extends Component {
     const { flex } = this.props;
     // var flex = 'column'
     // this.getInfoSeller();
-    console.log("Seller", this.state.sellerInfo);
 
 
     return (

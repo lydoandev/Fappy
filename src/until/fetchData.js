@@ -1,14 +1,12 @@
 import firebase from 'react-native-firebase'
 
-export default function fetchData(name) {
-    const ref = firebase.database().ref("users")
+export default async function fetchData(name) {
+    const ref = firebase.database().ref(name)
     let data = [];
-    ref.on('child_added', snapshot => {
-        console.log("Value: ", snapshot.val());
-        
-        data.push(snapshot.val())
+    await ref.on('child_added', snapshot => {
+        data.push({...snapshot.val(), id: snapshot.key})
     })
-    console.log("Data: ", data);
-    
+
     return data
 }
+

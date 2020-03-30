@@ -1,17 +1,28 @@
 
 import { put, takeLatest, call } from 'redux-saga/effects';
 import * as actions from './actions';
-import fetchData from '../../until/fetchData'
+import firebase from 'react-native-firebase'
 
-export function* fetchHome() {
+export function* fetchCart(action) {
+
   try {
-    var data = fetchData('products');
-    yield put({ type: actions.FETCH_HOME_SUCCESSED, payload: data });
+    var cart = yield firebase.database().ref('carts').orderByChild("userId")
+      .equalTo(action.payload).once('value')
+      .then(snapshot => {
+        if (snapshot.val()) {
+          var { items, sellerId } = Object.values(snapshot.val())[0];
+          return { items, sellerId }
+        } else return {}
+      })
+      
+    yield put({ type: actions.FETCH_CART_SUCCESSED, payload: cart });
+
+
   } catch (error) {
     console.log('Error: ', error);
   }
 }
 
 export const watchProductSaga = [
-  takeLatest(actions.FETCH_HOME, fetchHome)
+  takeLatest(actions.FETCH_CART, fetchCart)
 ]
