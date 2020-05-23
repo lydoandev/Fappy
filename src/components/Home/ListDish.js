@@ -15,6 +15,7 @@ export default class ListDish extends Component {
             item={item}
             flex={flex}
             navigateToDetail={navigateToDetail}
+            
           />
         )}
         keyExtractor={item => item.id}

@@ -3,7 +3,7 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions, Alert } fr
 
 export default class ModalNotification extends Component {
   navigateTo = () => {
-    this.props.navigateToCall(this.props.page)
+    this.props.navigateToCall()
   }
   render() {
     const { text, textButton, textButton2 } = this.props;

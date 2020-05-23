@@ -13,6 +13,8 @@ import SeeAll from './src/screens/Home/SeeAll'
 import RestaurantDetail from './src/screens/Home/RestaurantDetail'
 import MarketerDetail from './src/screens/Home/MarketerDetail'
 import Auth from './src/screens/Auth'
+import Cart from './src/screens/Home/Cart'
+
 console.disableYellowBox = true;
 
 import SideBar from './src/screens/SideBar'
@@ -26,6 +28,7 @@ Navigation.registerComponent("SeeAll", () => ReducerComponent(SeeAll), () => See
 Navigation.registerComponent("RestaurantDetail", () => ReducerComponent(RestaurantDetail), () => RestaurantDetail)
 Navigation.registerComponent("MarketerDetail", () => ReducerComponent(MarketerDetail), () => MarketerDetail)
 Navigation.registerComponent("Auth", () => ReducerComponent(Auth), () => Auth)
+Navigation.registerComponent("Cart", () => ReducerComponent(Cart), () => Cart)
 
 Navigation.registerComponent("SideBar", () => ReducerComponent(SideBar), () => SideBar)
 

@@ -10,6 +10,8 @@ import navigateTo from '../../until/navigateTo'
 import firebase from 'react-native-firebase'
 import moment from 'moment'
 import { connect } from 'react-redux'
+import * as productActions from '../../reduxs/productRedux/actions'
+
 class Detail extends Component {
     constructor(props) {
         super(props);
@@ -35,10 +37,6 @@ class Detail extends Component {
 
     navigateToResDetail = () => {
         const { id, name } = this.props.sellerInfo;
-        // var page = "";
-        // if (id.includes("RES")) {
-        //     page = "RestaurantDetail"
-        // } else page = "RestaurantDetail"
 
         navigateTo(this.props.sellerInfo, this.props.componentId, 'RestaurantDetail', {
             title: {
@@ -83,6 +81,7 @@ class Detail extends Component {
                                 keyCart
                             })
                             refCart.child(keyCart).update({ items });
+
                             this.completedAddToCart();
                         }
                     }
@@ -109,7 +108,25 @@ class Detail extends Component {
         }))
     }
 
+    navigateToCart = () => {
+
+        const { cart } = this.props;
+        this.completedAddToCart();
+        navigateTo(cart, this.props.componentId, "Cart", {
+            visible: true,
+            title: {
+                text: 'Danh sách giỏ hàng',
+                alignment: 'center'
+            },
+            rightButtons: {
+                id: 'deleteAll',
+                icon: require('../../assets/icons/icon_delete.png'),
+            },
+        });
+    };
+
     completedAddToCart = () => {
+        this.props.fetchCart(this.props.user.id);
         this.setState(prevState => ({
             addedToCart: !prevState.addedToCart
         }))
@@ -260,7 +277,15 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => {
     return {
-        user: state.authReducer.user
+        user: state.authReducer.user,
+        cart: state.productReducer.cart
     }
 }
-export default connect(mapStateToProps, null)(Detail)
+
+const mapDispatchToProps = dispatch => {
+    return {
+        fetchCart: (userId) => dispatch(productActions.fetchCart(userId))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Detail)

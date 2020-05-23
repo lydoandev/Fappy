@@ -132,6 +132,24 @@ class Home extends Component {
         }, this.props.componentId, 'Detail');
     };
 
+    navigateToCart = () => {
+       
+
+        const {cart} = this.props;
+
+        navigateTo(cart, this.props.componentId, "Cart", {
+            visible: true,
+            title: {
+              text: 'Danh sách giỏ hàng',
+              alignment: 'center'
+            },
+            rightButtons: {
+              id: 'deleteAll',
+              icon: require('../../assets/icons/icon_delete.png'),
+            },
+          });
+    }; 
+
     navigateToSeeAll = (data, type) => {
         navigateTo({ data }, this.props.componentId, 'SeeAll',
             {
@@ -220,7 +238,7 @@ class Home extends Component {
                         sections={products}
                         keyExtractor={(item, index) => item + index}
                         renderItem={item => (
-                            <ListDish horizontal={true} navigateToDetail={this.navigateToDetail} data={item.section.data[0].products} flex='column'></ListDish>
+                            <ListDish navigateToCart={this.navigateToCart} horizontal={true} navigateToDetail={this.navigateToDetail} data={item.section.data[0].products} flex='column'></ListDish>
 
                         )}
                         renderSectionHeader={({ section: { type, data } }) => (
@@ -233,7 +251,7 @@ class Home extends Component {
 
                     />
                 </ScrollView>
-                {isAuthenticated && <IconCart cart={this.props.cart} />}
+                {isAuthenticated && <IconCart cart={this.props.cart} navigateToCart={this.navigateToCart}/>}
             </>
         )
     }
