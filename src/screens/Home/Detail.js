@@ -61,6 +61,9 @@ class Detail extends Component {
 
     addToCart = () => {
         const { id } = this.props.user;
+        console.log("Vô nè")
+
+        const item = {...this.props.item, quantityOrdered: 1};
 
         var refCart = firebase.database().ref('carts');
         refCart.orderByChild("userId")
@@ -75,7 +78,7 @@ class Detail extends Component {
                         if (existPro) {
                             this.setModalVisibleHaveError("Sản phẩm này đã có trong giỏ hàng");
                         } else {
-                            items.push(this.props.item);
+                            items.push(item);
                             var keyCart = Object.keys(snapshot.val());
                             this.setState({
                                 keyCart
@@ -86,7 +89,7 @@ class Detail extends Component {
                         }
                     }
                 } else {
-                    refCart.push({ userId: id, sellerId: this.props.sellerInfo.id, items: [this.props.item] });
+                    refCart.push({ userId: id, sellerId: this.props.sellerInfo.id, items: [item] });
                     this.completedAddToCart();
 
                 }

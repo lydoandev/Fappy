@@ -5,7 +5,10 @@ import navigateTo from '../../until/navigateTo';
 import * as userActions from '../../reduxs/authRedux/actions'
 import { connect } from 'react-redux';
 import { Navigation } from 'react-native-navigation';
-// import ModalAddCart from '../../components/Home/ModalAddCart';
+import ModalNotification from '../../components/Home/ModalNotification';
+import firebase from 'react-native-firebase'
+import * as productActions from '../../reduxs/productRedux/actions'
+
 
 class Cart extends Component {
   constructor(props) {
@@ -15,35 +18,47 @@ class Cart extends Component {
       idBookDelete: '',
       deleteSuccess: false,
       successMess: '',
+      askMess: '',
       error: '',
       deleteAll: false
     }
     Navigation.events().bindComponent(this);
   }
 
-//   deleteItemCart = async () => {
-//     const { token, idUser, idCart } = this.props;
-//     const { idBookDelete, deleteAll } = this.state;
-//     const info = { BookId: idBookDelete, UserId: idUser, DeleteAll: deleteAll }
+  deleteItemCart = async () => {
+    const { idUser, cart } = this.props;
+    const { idProdDelete, deleteAll } = this.state;
 
-//     try {
-//       var data = await callAPI('api/basket', 'DELETE', info, token);
-//       this.props.getCart({ basketId: idCart, userId: idUser, token });
-//       this.changeAskDelete();
-//       this.setState(prevState => ({
-//         ...prevState,
-//         deleteSuccess: !prevState.deleteSuccess,
-//         error: "Xóa sách thành công"
-//       }))
-//     } catch (error) {
+    if (deleteAll) {
+      var refCart = firebase.database().ref('carts').child(cart.id).remove();
+      this.props.fetchCart(idUser);
+    } else {
+      var refCart = firebase.database().ref('carts');
+      refCart.orderByChild("userId")
+        .equalTo(idUser).once('value')
+        .then(snapshot => {
+          var { items } = Object.values(snapshot.val())[0];
+          var index = items.findIndex(item => item.id == idProdDelete);
 
-//       this.setState(prevState => ({
-//         ...prevState,
-//         error: error.response.data.Message
-//       }))
+          items.splice(index, 1);
+          if (items.length <= 0) {
+            firebase.database().ref('carts').child(cart.id).remove();
+          } else {
+            refCart.child(cart.id).update({ items });
 
-//     }
-//   }
+          }
+          this.props.fetchCart(idUser);
+
+        })
+    }
+    this.setState(prevState => ({
+      ...prevState,
+      deleteSuccess: !prevState.deleteSuccess,
+      askDelete: !prevState.askDelete,
+      error: "Xóa giỏ hàng thành công"
+    }))
+
+  }
 
   navigateToDetail = item => {
     navigateTo({
@@ -51,82 +66,83 @@ class Cart extends Component {
     }, this.props.componentId, 'Detail');
   };
 
-//   changeDeleteSuccess = () => {
-//     this.setState(prevState => ({
-//       ...prevState,
-//       deleteSuccess: !prevState.deleteSuccess,
-//       successMess: '',
-//       error: ''
-//     }))
-//   }
+  changeDeleteSuccess = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      deleteSuccess: !prevState.deleteSuccess,
+      successMess: '',
+      error: ''
+    }))
+  }
 
-//   navigationButtonPressed = ({ buttonId }) => {
-//     if (buttonId === 'deleteAll') {
-//       this.setState(prevState => ({
-//         ...prevState,
-//         deleteAll: true
-//       }))
-//       this.changeAskDelete("");
-//     }
-//   };
+  navigationButtonPressed = ({ buttonId }) => {
+    if (buttonId === 'deleteAll') {
+      this.setState(prevState => ({
+        ...prevState,
+        deleteAll: true
+      }))
+      this.changeAskDelete("", "Bạn có chắc chắn muốn xoá toàn bộ giỏ hàng không?");
+    }
+  };
 
-//   changeAskDelete = (idBookDelete) => {
-//     this.setState(prevState => ({
-//       ...prevState,
-//       askDelete: !prevState.askDelete,
-//       idBookDelete
-//     }))
-//   }
+  changeAskDelete = (idProdDelete, askMess) => {
+    this.setState(prevState => ({
+      ...prevState,
+      askDelete: !prevState.askDelete,
+      idProdDelete,
+      askMess
+    }))
+  }
 
-//   changeQuantity = async (BookId, Quantity) => {
-//     const { token, idUser, idCart } = this.props;
-//     const info = { BookId, UserId: idUser, Quantity }
+  //   changeQuantity = async (BookId, Quantity) => {
+  //     const { token, idUser, idCart } = this.props;
+  //     const info = { BookId, UserId: idUser, Quantity }
 
-//     try {
-//       var data = await callAPI(`api/basket/${idCart}`, 'PUT', info, token);
-//       this.props.getCart({ basketId: idCart, userId: idUser, token });
-//     } catch (error) {
+  //     try {
+  //       var data = await callAPI(`api/basket/${idCart}`, 'PUT', info, token);
+  //       this.props.getCart({ basketId: idCart, userId: idUser, token });
+  //     } catch (error) {
 
-//       this.setState(prevState => ({
-//         ...prevState,
-//         error: error.response.data.Message
-//       }))
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         error: error.response.data.Message
+  //       }))
 
-//     }
-//   }
+  //     }
+  //   }
 
-//   order = async () => {
-//     const { token, idUser, idCart } = this.props;
-//     const info = { ShippingAddress: '', ShippingRequired: false, UserId: idUser, Note: '' }
+  //   order = async () => {
+  //     const { token, idUser, idCart } = this.props;
+  //     const info = { ShippingAddress: '', ShippingRequired: false, UserId: idUser, Note: '' }
 
-//     try {
-//       var data = await callAPI('api/orders', 'POST', info, token);
+  //     try {
+  //       var data = await callAPI('api/orders', 'POST', info, token);
 
-//       this.props.getCart({ basketId: idCart, userId: idUser, token });
-//       this.setState(prevState => ({
-//         ...prevState,
-//         successMess: 'Đặt sách thành công',
-//       }))
-//     } catch (error) {
+  //       this.props.getCart({ basketId: idCart, userId: idUser, token });
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         successMess: 'Đặt sách thành công',
+  //       }))
+  //     } catch (error) {
 
-//       this.setState(prevState => ({
-//         ...prevState,
-//         error: error.response.data.Message
-//       }))
+  //       this.setState(prevState => ({
+  //         ...prevState,
+  //         error: error.response.data.Message
+  //       }))
 
-//     }
-//   }
+  //     }
+  //   }
 
-navigateToResDetail = (sellerInfo) => {
-  const {name } = sellerInfo;
+  navigateToResDetail = (sellerInfo) => {
+    const { name } = sellerInfo;
 
-  navigateTo(sellerInfo, this.props.componentId, 'RestaurantDetail', {
+    navigateTo(sellerInfo, this.props.componentId, 'RestaurantDetail', {
       title: {
-          text: name,
-          alignment: 'center'
+        text: name,
+        alignment: 'center'
       }
-  });
-}
+    });
+  }
 
   navigateToOrder = () => {
     this.changeDeleteSuccess();
@@ -137,13 +153,13 @@ navigateToResDetail = (sellerInfo) => {
   }
 
   render() {
-    const { askDelete, deleteSuccess, successMess, error } = this.state;
+    const { askDelete, deleteSuccess, successMess, error, askMess } = this.state;
     console.log("Cart 2: ", this.props)
     return (
       <>
         <View style={{ marginBottom: 45 }}>
           <FlatList
-            data={this.props.items}
+            data={this.props.cart.items}
             renderItem={({ item }) => (
               <ItemCart
                 item={item}
@@ -157,28 +173,28 @@ navigateToResDetail = (sellerInfo) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ marginHorizontal: 15 }}
           />
-          {/* <ModalAddCart
+          <ModalNotification
             modalVisible={askDelete}
             setModalVisible={this.changeAskDelete}
-            text='Bạn có chắc chắn muốn xóa sách này khỏi giỏ hàng không?'
+            text={askMess}
             textButton='Có'
             textButton2='Không'
             navigateToCall={this.deleteItemCart}
           />
-          <ModalAddCart
+          <ModalNotification
             modalVisible={error != '' ? true : false}
             navigateToCall={this.changeDeleteSuccess}
             text={error}
             textButton='Đã hiểu'
           />
-          <ModalAddCart
+          <ModalNotification
             modalVisible={successMess != '' ? true : false}
             navigateToCall={this.navigateToOrder}
             setModalVisible={this.changeDeleteSuccess}
             text={successMess}
             textButton2='Lúc khác'
             textButton='Xem đơn hàng'
-          /> */}
+          />
         </View>
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
           <TouchableOpacity style={styles.btnOrder} onPress={this.order}>
@@ -205,16 +221,15 @@ const styles = StyleSheet.create({
 
 function mapStateToProps(state) {
   return {
-    idCart: state.authReducer.idCart,
-    cart: state.authReducer.cart,
-    idUser: state.authReducer.user.Id,
+    cart: state.productReducer.cart,
+    idUser: state.authReducer.user.id,
     token: state.authReducer.token
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    getCart: ({ basketId, userId, token }) => dispatch(userActions.getCart({ basketId, userId, token })),
+    fetchCart: (userId) => dispatch(productActions.fetchCart(userId))
   };
 }
 

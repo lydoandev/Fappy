@@ -10,8 +10,9 @@ export function* fetchCart(action) {
       .equalTo(action.payload).once('value')
       .then(snapshot => {
         if (snapshot.val()) {
+          var id = Object.keys(snapshot.val());
           var { items, sellerId } = Object.values(snapshot.val())[0];
-          return { items, sellerId }
+          return { id, items, sellerId }
         } else return {}
       })
       

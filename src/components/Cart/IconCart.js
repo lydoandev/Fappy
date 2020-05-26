@@ -17,7 +17,7 @@ export default class IconCart extends Component {
           </TouchableOpacity>
         </View>
         <View style={{ position: 'absolute', right: 25, top: 425, borderRadius: 10 }}>
-          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#ffffff' }}>{this.props?.cart?.items?.length}</Text>
+          <Text style={{ fontSize: 15, fontWeight: 'bold', color: '#ffffff' }}>{this.props?.cart?.items?.length || 0}</Text>
         </View>
       </>
     )

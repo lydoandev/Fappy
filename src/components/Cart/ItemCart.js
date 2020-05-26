@@ -51,7 +51,7 @@ export default class ItemCart extends Component {
   };
 
   handleDeleteItemCart = () => {
-    this.props.deleteItemCart(this.props.item.Id);
+    this.props.deleteItemCart(this.props.item.id, "Bạn có chắc chắn xoá sản phẩm này khỏi giỏ hàng không?");
   }
 
   changeQuantity = (quantity) => {
@@ -69,6 +69,7 @@ export default class ItemCart extends Component {
       starRating,
       price,
       quantity,
+      quantityOrdered
     } = this.props.item;
 
     console.log("Seller: ", this.state.sellerInfo)
@@ -124,7 +125,7 @@ export default class ItemCart extends Component {
                 size={17}
                 style={styles.icon}
                 color="#F2A90F" />
-              <Text style={[styles.icon, { fontSize: 16 }]}>{quantity}</Text>
+              <Text style={[styles.icon, { fontSize: 16 }]}>{quantityOrdered}</Text>
               <Icon
                 name="plus"
                 size={17}
