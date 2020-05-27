@@ -20,12 +20,31 @@ class Cart extends Component {
       successMess: '',
       askMess: '',
       error: '',
-      deleteAll: false
+      deleteAll: false,
+      sellerInfo: {}
     }
     Navigation.events().bindComponent(this);
   }
 
-  deleteItemCart = async () => {
+  componentDidMount() {
+    const { sellerId } = this.props.cart;
+    var nameRef = '';
+    if (sellerId.includes("RES")) {
+      nameRef = "restaurants/" + sellerId;
+    } else {
+      nameRef = "marketers/" + sellerId;
+    }
+    var ref = firebase.database().ref(nameRef)
+    ref.once('value').then(snapshot => {
+      this.setState({
+        sellerInfo: { ...snapshot.val(), id: snapshot.key }
+      })
+    });
+
+  }
+
+
+  deleteItemCart = () => {
     const { idUser, cart } = this.props;
     const { idProdDelete, deleteAll } = this.state;
 
@@ -94,22 +113,21 @@ class Cart extends Component {
     }))
   }
 
-  //   changeQuantity = async (BookId, Quantity) => {
-  //     const { token, idUser, idCart } = this.props;
-  //     const info = { BookId, UserId: idUser, Quantity }
+  changeQuantity = (productId, quantity, quantityOrdered) => {
+    const { idUser, cart } = this.props;
+    const { items } = cart;
+    if (quantity >= quantityOrdered) {
+      const index = items.findIndex(item => item.id === productId);
+      items[index].quantityOrdered = quantityOrdered;
 
-  //     try {
-  //       var data = await callAPI(`api/basket/${idCart}`, 'PUT', info, token);
-  //       this.props.getCart({ basketId: idCart, userId: idUser, token });
-  //     } catch (error) {
-
-  //       this.setState(prevState => ({
-  //         ...prevState,
-  //         error: error.response.data.Message
-  //       }))
-
-  //     }
-  //   }
+      firebase.database().ref('carts').child(cart.id).update({ items });
+      this.props.fetchCart();
+    } else {
+      this.setState({
+        error: 'Không còn đủ số lượng'
+      })
+    }
+  }
 
   //   order = async () => {
   //     const { token, idUser, idCart } = this.props;
@@ -136,7 +154,7 @@ class Cart extends Component {
   navigateToResDetail = (sellerInfo) => {
     const { name } = sellerInfo;
 
-    navigateTo(sellerInfo, this.props.componentId, 'RestaurantDetail', {
+    navigateTo(this.state.sellerInfo, this.props.componentId, 'RestaurantDetail', {
       title: {
         text: name,
         alignment: 'center'
@@ -153,11 +171,13 @@ class Cart extends Component {
   }
 
   render() {
-    const { askDelete, deleteSuccess, successMess, error, askMess } = this.state;
-    console.log("Cart 2: ", this.props)
+    const { askDelete, deleteSuccess, successMess, error, askMess, sellerInfo } = this.state;
     return (
       <>
-        <View style={{ marginBottom: 45 }}>
+        <View style={{ marginBottom: 45, marginTop: 20 }}>
+          <TouchableOpacity onPress={this.navigateToResDetail}>
+            <Text style={styles.sellerName} numberOfLines={1}>{this.state.sellerInfo.name || ''}</Text>
+          </TouchableOpacity>
           <FlatList
             data={this.props.cart.items}
             renderItem={({ item }) => (
@@ -216,7 +236,13 @@ const styles = StyleSheet.create({
   btnText: {
     color: "#ffffff",
     fontSize: 20
-  }
+  },
+  sellerName: {
+    fontFamily: 'SVN-ProximaNova',
+    fontSize: 17,
+    paddingLeft: 23,
+    fontWeight: 'bold'
+  },
 })
 
 function mapStateToProps(state) {

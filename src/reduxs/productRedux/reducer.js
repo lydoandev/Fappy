@@ -16,7 +16,6 @@ export const productReducer = (state = initState, action) => {
         loading: true
       });
     case actions.FETCH_CART_SUCCESSED:
-      console.log("Payload: ", action.payload);
 
       return Object.assign({}, state, {
         loading: false,

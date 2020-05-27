@@ -61,7 +61,6 @@ class Detail extends Component {
 
     addToCart = () => {
         const { id } = this.props.user;
-        console.log("Vô nè")
 
         const item = {...this.props.item, quantityOrdered: 1};
 

@@ -24,24 +24,6 @@ export default class ItemCart extends Component {
 
   navigateToResDetail = () => {
     this.props.navigateToResDetail(this.props.navigateToResDetail(this.state.sellerInfo))
-}
-
-  componentDidMount() {
-    const { sellerId } = this.props.item;
-    console.log("item", sellerId)
-    var nameRef = '';
-    if (sellerId.includes("RES")) {
-      nameRef = "restaurants/" + sellerId;
-    } else {
-      nameRef = "marketers/" + sellerId;
-    }
-    var ref = firebase.database().ref(nameRef)
-    ref.once('value').then(snapshot => {
-      this.setState({
-        sellerInfo: { ...snapshot.val(), id: snapshot.key }
-      })
-    });
-
   }
 
   navigateToDetail = async () => {
@@ -54,11 +36,12 @@ export default class ItemCart extends Component {
     this.props.deleteItemCart(this.props.item.id, "Bạn có chắc chắn xoá sản phẩm này khỏi giỏ hàng không?");
   }
 
-  changeQuantity = (quantity) => {
-    if (quantity >= 1) {
-      this.props.changeQuantity(this.props.item.Id, quantity);
+  changeQuantity = (quantityOrdered) => {
+    const { quantity, id } = this.props.item;
+    if (quantityOrdered >= 1) {
+      this.props.changeQuantity(id, quantity, quantityOrdered);
     } else {
-      this.props.deleteItemCart(this.props.item.Id);
+      this.props.deleteItemCart(this.props.item.Id, "Bạn có chắc chắn xoá sản phẩm này khỏi giỏ hàng không?");
     }
   }
 
@@ -69,20 +52,19 @@ export default class ItemCart extends Component {
       starRating,
       price,
       quantity,
-      quantityOrdered
+      quantityOrdered,
+      unit
     } = this.props.item;
-
-    console.log("Seller: ", this.state.sellerInfo)
 
 
     return (
       <View
-        style={[styles.book_item, { flexDirection: 'row' }]}
+        style={[styles.product_item, { flexDirection: 'row' }]}
       >
         <TouchableOpacity onPress={this.navigateToDetail} >
-          <Image source={{ uri: image || '' }} style={styles.book_img} />
+          <Image source={{ uri: image || '' }} style={styles.product_img} />
         </TouchableOpacity>
-        <View style={{ marginTop: 5 }}>
+        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: 220 }}>
           <View style={{ alignItems: 'flex-end' }}>
             <Icon
               onPress={this.handleDeleteItemCart}
@@ -92,14 +74,10 @@ export default class ItemCart extends Component {
             />
           </View>
           <View
-            style={{ flexDirection: 'column', marginTop: 20 }}>
+            style={{ flexDirection: 'column', marginTop: 10 }}>
             <Text style={styles.title} numberOfLines={1}>
               {name}
             </Text>
-            <TouchableOpacity onPress={this.navigateToResDetail}>
-              <Text style={styles.sellerName} numberOfLines={1}>{this.state.sellerInfo.name || ''}</Text>
-            </TouchableOpacity>
-
             <View
               style={{
                 flexDirection: 'row',
@@ -116,11 +94,10 @@ export default class ItemCart extends Component {
             </View>
 
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }}>
-            <Text style={{ fontSize: 16, }}>Quantity</Text>
-            <View style={{ alignSelf: 'flex-end', flexDirection: 'row', }}>
+          <View style={styles.product_info}>
+            <View style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center' }}>
               <Icon
-                onPress={() => this.changeQuantity(quantity - 1)}
+                onPress={() => this.changeQuantity(quantityOrdered - 1)}
                 name="minus"
                 size={17}
                 style={styles.icon}
@@ -131,8 +108,9 @@ export default class ItemCart extends Component {
                 size={17}
                 color="#F2A90F"
                 style={styles.icon}
-                onPress={() => this.changeQuantity(quantity + 1)}
+                onPress={() => this.changeQuantity(quantityOrdered + 1)}
               />
+              <Text style={styles.unit}>{unit}</Text>
             </View>
           </View>
         </View>
@@ -142,16 +120,16 @@ export default class ItemCart extends Component {
 }
 
 const styles = StyleSheet.create({
-  book_item: {
-    width: 155,
+  product_item: {
+    width: '100%',
     marginVertical: 20,
     marginHorizontal: 8,
   },
-  book_img: {
-    width: 145,
-    height: 200,
+  product_img: {
+    width: 110,
+    height: 150,
     borderRadius: 10,
-    marginRight: 10,
+    marginRight: 15,
   },
   title: {
     fontFamily: 'SVN-ProximaNova',
@@ -168,9 +146,14 @@ const styles = StyleSheet.create({
   icon: {
     paddingHorizontal: 5
   },
-  sellerName: {
-    fontFamily: 'SVN-ProximaNova',
+  unit: {
     fontSize: 16,
-    color: '#ababab',
+    fontWeight: 'bold',
+    marginLeft: 10
   },
+  product_info: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15
+  }
 });

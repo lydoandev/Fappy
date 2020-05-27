@@ -160,8 +160,6 @@ class Home extends Component {
             });
     };
     render() {
-        console.log("Cart nè: ", this.props.cart);
-
         const images = [
             'https://chuphinhmonan.com/wp-content/uploads/2017/03/avalon-1.jpg',
             'https://dichvuvietbaiseo.vn/wp-content/uploads/2018/01/dich-vu-chup-anh-mon-an-cho-nha-hang-2.jpg',
@@ -183,7 +181,6 @@ class Home extends Component {
 
 
         var products = this.filterProduct();
-        var listDishes = [item, item, item, item, item]
         const { isAuthenticated } = this.props;
         if (!isAuthenticated) {
             Navigation.dismissAllModals()
