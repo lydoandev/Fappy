@@ -38,11 +38,7 @@ export default class ItemCart extends Component {
 
   changeQuantity = (quantityOrdered) => {
     const { quantity, id } = this.props.item;
-    if (quantityOrdered >= 1) {
-      this.props.changeQuantity(id, quantity, quantityOrdered);
-    } else {
-      this.props.deleteItemCart(this.props.item.Id, "Bạn có chắc chắn xoá sản phẩm này khỏi giỏ hàng không?");
-    }
+    this.props.changeQuantity(id, quantity, quantityOrdered);
   }
 
   render() {
@@ -64,7 +60,7 @@ export default class ItemCart extends Component {
         <TouchableOpacity onPress={this.navigateToDetail} >
           <Image source={{ uri: image || '' }} style={styles.product_img} />
         </TouchableOpacity>
-        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: 220 }}>
+        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: 180 }}>
           <View style={{ alignItems: 'flex-end' }}>
             <Icon
               onPress={this.handleDeleteItemCart}
@@ -74,7 +70,7 @@ export default class ItemCart extends Component {
             />
           </View>
           <View
-            style={{ flexDirection: 'column', marginTop: 10 }}>
+            style={{ flexDirection: 'column', marginTop: 5 }}>
             <Text style={styles.title} numberOfLines={1}>
               {name}
             </Text>
@@ -126,8 +122,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   product_img: {
-    width: 110,
-    height: 150,
+    width: 90,
+    height: 120,
     borderRadius: 10,
     marginRight: 15,
   },

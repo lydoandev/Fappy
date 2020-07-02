@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { View, ScrollView, Image, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { Navigation } from 'react-native-navigation';
 import StarIcon from '../../components/Home/StarIcon'
 import { Icon } from 'react-native-elements'
 import format from '../../until/dateFomrter'
@@ -7,32 +8,41 @@ import ListDish from '../../components/Home/ListDish'
 import TitleSection from '../../components/Home/TitleSection'
 import ModalNotification from '../../components/Home/ModalNotification'
 import navigateTo from '../../until/navigateTo'
+import showModal from '../../until/showModal'
 import firebase from 'react-native-firebase'
 import moment from 'moment'
 import { connect } from 'react-redux'
 import * as productActions from '../../reduxs/productRedux/actions'
+import getProductBySeller from '../../until/getProductBySeller'
 
 class Detail extends Component {
     constructor(props) {
         super(props);
         const { item } = props;
         this.state = {
-            relatedDishes: [item, item, item, item],
+            relatedDishes: [],
             addedToCart: false,
             haveError: false,
             message: '',
             existSeller: false,
             keyCart: ''
         }
+        Navigation.events().bindComponent(this);
     }
-    // componentDidMount() {
-    //     setInterval(() => {
-    //         this.calTimeUsed();
-    //     }, 1000)
-    // }
+    componentDidMount() {
+        this.getProductOfRestaurant();
+    }
 
-    navigateToDetail = item => {
-        navigateTo({ item }, this.props.componentId, 'Detail');
+    getProductOfRestaurant = async () => {
+        const { id } = this.props.sellerInfo;
+        var products = await getProductBySeller(id);
+        const index = products.findIndex(item => item.id == this.props.item.id);
+        products.splice(index, 1);
+        this.setState({ relatedDishes: products });
+    }
+
+    navigateToDetail = ({ item, sellerInfo }) => {
+        navigateTo({ item, sellerInfo }, this.props.componentId, 'Detail');
     };
 
     navigateToResDetail = () => {
@@ -48,10 +58,17 @@ class Detail extends Component {
 
     calTimeUsed = () => {
         const { createAt, timeUsed } = this.props.item;
-        var now = moment();
-        var hours = moment(moment(createAt, "hh:mm").diff(moment(now, "hh:mm"))).format("hh:mm");
-        var hoursUsed = moment(moment(hours, "hh:mm").diff(moment(timeUsed, "hh:mm"))).format("hh:mm");
-        return hoursUsed
+        var now = moment.utc();
+        var dateCreate = moment.utc('Thu Jul 02 2020 16:24:56');
+        var timeExpride = dateCreate.add(timeUsed, "hours").format('YYYY-MM-DD hh:mm:ss');
+        console.log("Time: ", timeExpride);
+        
+        var duration =moment.utc(timeExpride).diff(now, 'hours');
+        // var hours = moment.utc(duration.asMilliseconds()).format("HH:mm:ss");
+        console.log(duration);
+        
+        var hoursUsed = moment.duration(moment(timeUsed, "hh:mm:ss").diff(moment(hours, 'hh:mm:ss')));
+        return moment.utc(hoursUsed.asMilliseconds()).format("HH:mm:ss");
     }
 
     navigateToSeeAll = () => {
@@ -90,7 +107,6 @@ class Detail extends Component {
                 } else {
                     refCart.push({ userId: id, sellerId: this.props.sellerInfo.id, items: [item] });
                     this.completedAddToCart();
-
                 }
             })
     }
@@ -114,7 +130,7 @@ class Detail extends Component {
 
         const { cart } = this.props;
         this.completedAddToCart();
-        navigateTo(cart, this.props.componentId, "Cart", {
+        showModal(cart, "Cart", {
             visible: true,
             title: {
                 text: 'Danh sách giỏ hàng',
@@ -147,7 +163,7 @@ class Detail extends Component {
         const { relatedDishes, haveError, addedToCart, message, existSeller } = this.state;
 
         return (
-            <View>
+            <View style={{position: 'relative', flex: 1}}>
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                     <View style={styles.info}>
                         <Image
@@ -275,6 +291,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#F2A90F"
     },
+    btnText: {
+        color: '#fff',
+        fontSize: 17
+    }
 });
 
 const mapStateToProps = (state) => {

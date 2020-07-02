@@ -13,3 +13,4 @@ export default function navigateTo(props, compId, page, topBar) {
     }
   });
 }
+

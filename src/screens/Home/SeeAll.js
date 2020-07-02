@@ -3,8 +3,8 @@ import { FlatList, View } from 'react-native'
 import ItemDish from '../../components/Home/ItemDish'
 import navigateTo from '../../until/navigateTo'
 export default class SeeAll extends Component {
-    navigateToDetail = item => {
-        navigateTo({ item }, this.props.componentId, 'Detail');
+    navigateToDetail = ({item, sellerInfo}) => {
+        navigateTo({ item, sellerInfo }, this.props.componentId, 'Detail');
     };
     render() {
         const { data } = this.props;

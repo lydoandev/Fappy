@@ -14,7 +14,8 @@ export default class RestaurantDetail extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            products: []
+            products: [],
+            seeHourOpen: false
         }
     }
     checkIsOpen = () => {
@@ -40,30 +41,34 @@ export default class RestaurantDetail extends Component {
 
     getProductOfRestaurant = async () => {
         const { id } = this.props;
-        // var refProducts = await firebase.database().ref("products").orderByChild('sellerId')
-        //     .equalTo(id).once('value')
-        //     .then(snapshot => {
-        //         if (snapshot.val() != null) {
-        //             return snapshot.val()
-        //         }
-        //     })
-        // var products = [];
-        // refProducts.map(item => {
-        //     if (item != null) {
-        //         products.push(item)
-        //     }
-        // })
         var products = await getProductBySeller(id);
         this.setState({ products })
 
     }
+
+    navigateToSeeAll = () => {
+        const { products } = this.state;
+        const { name } = this.props;
+        navigateTo({ data: products }, this.props.componentId, 'SeeAll',
+            {
+                title: {
+                    text: name,
+                    alignment: 'center'
+                }
+            });
+    };
+
+    seeHourOpen = () => {
+        this.setState((prevState) => ({ seeHourOpen: !prevState.seeHourOpen }))
+    }
+
     render() {
         var isOpen = this.checkIsOpen();
-        const { products } = this.state;
+        const { products, seeHourOpen } = this.state;
 
-        const { name, address, image, starRating, phone } = this.props;
+        const { name, address, image, starRating, openHour, closeHour } = this.props;
         return (
-            <View style={{ flex: 1 }}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
                 <View>
                     <Image source={{ uri: image }} style={styles.res_image}></Image>
                     <View style={styles.generalInfo}>
@@ -74,19 +79,24 @@ export default class RestaurantDetail extends Component {
                         <StarIcon star={starRating} />
                         <View style={styles.hours}>
                             <Text style={{ color: isOpen ? '#F2A90F' : '#a6a6a6', fontWeight: '800' }}>{isOpen ? 'Đang mở cửa' : 'Chưa mở cửa'}</Text>
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={this.seeHourOpen}>
                                 <Text style={{ color: '#0080ff' }}>Xem giờ mở cửa</Text>
                             </TouchableOpacity>
                         </View>
+                        {seeHourOpen && (
+                            <View style={{ marginTop: 10 }}>
+                                <Text>{openHour} - {closeHour}</Text>
+                            </View>
+                        )}
                     </View>
                 </View>
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
+                <View
+
                     style={styles.dishes}>
                     <TitleSection type="Món ăn" data={products} navigateToSeeAll={this.navigateToSeeAll}></TitleSection>
                     <ListDish flex='row' horizontal={false} data={products} navigateToDetail={this.navigateToDetail}></ListDish>
-                </ScrollView>
-            </View>
+                </View>
+            </ScrollView>
         )
     }
 }

@@ -2,11 +2,14 @@ import React, { Component } from 'react'
 import { FlatList, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import ItemCart from '../../components/Cart/ItemCart'
 import navigateTo from '../../until/navigateTo';
-import * as userActions from '../../reduxs/authRedux/actions'
+import showModal from '../../until/showModal'
+import DateTimePicker from 'react-native-datepicker';
 import { connect } from 'react-redux';
 import { Navigation } from 'react-native-navigation';
 import ModalNotification from '../../components/Home/ModalNotification';
 import firebase from 'react-native-firebase'
+import Loading from "../../components/Home/Loading"
+import uuid from 'react-native-uuid'
 import * as productActions from '../../reduxs/productRedux/actions'
 
 
@@ -21,26 +24,40 @@ class Cart extends Component {
       askMess: '',
       error: '',
       deleteAll: false,
-      sellerInfo: {}
+      sellerInfo: {},
+      mode: 'date',
+      time: new Date()
     }
     Navigation.events().bindComponent(this);
   }
 
   componentDidMount() {
+    this.setState({ loading: true })
     const { sellerId } = this.props.cart;
     var nameRef = '';
-    if (sellerId.includes("RES")) {
-      nameRef = "restaurants/" + sellerId;
-    } else {
-      nameRef = "marketers/" + sellerId;
+    if (sellerId) {
+      if (sellerId.includes("RES")) {
+        nameRef = "restaurants/" + sellerId;
+      } else {
+        nameRef = "marketers/" + sellerId;
+      }
+      var ref = firebase.database().ref(nameRef)
+      ref.once('value').then(snapshot => {
+        this.setState({
+          sellerInfo: { ...snapshot.val(), id: snapshot.key }
+        })
+      });
+      this.calTotalPrice();
     }
-    var ref = firebase.database().ref(nameRef)
-    ref.once('value').then(snapshot => {
-      this.setState({
-        sellerInfo: { ...snapshot.val(), id: snapshot.key }
-      })
-    });
+    setTimeout(() => this.setState({ loading: false }), 3000)
+  }
 
+  calTotalPrice = () => {
+    const { items } = this.props.cart;
+    var totalPrice = items.reduce((total, { quantityOrdered, price }) => total + quantityOrdered * price, 0);
+    this.setState({
+      totalPrice: totalPrice
+    })
   }
 
 
@@ -67,7 +84,7 @@ class Cart extends Component {
 
           }
           this.props.fetchCart(idUser);
-
+          this.calTotalPrice();
         })
     }
     this.setState(prevState => ({
@@ -102,6 +119,9 @@ class Cart extends Component {
       }))
       this.changeAskDelete("", "Bạn có chắc chắn muốn xoá toàn bộ giỏ hàng không?");
     }
+    if (buttonId == 'left') {
+      Navigation.dismissAllModals();
+    }
   };
 
   changeAskDelete = (idProdDelete, askMess) => {
@@ -116,40 +136,59 @@ class Cart extends Component {
   changeQuantity = (productId, quantity, quantityOrdered) => {
     const { idUser, cart } = this.props;
     const { items } = cart;
-    if (quantity >= quantityOrdered) {
-      const index = items.findIndex(item => item.id === productId);
-      items[index].quantityOrdered = quantityOrdered;
-
-      firebase.database().ref('carts').child(cart.id).update({ items });
-      this.props.fetchCart();
+    if (quantityOrdered < 1) {
+      this.changeAskDelete(productId, "Bạn có chắc chắn muốn xoá toàn bộ giỏ hàng không?");
     } else {
-      this.setState({
-        error: 'Không còn đủ số lượng'
-      })
+      if (quantity >= quantityOrdered) {
+        const index = items.findIndex(item => item.id === productId);
+        items[index].quantityOrdered = quantityOrdered;
+
+        firebase.database().ref('carts').child(cart.id).update({ items });
+        this.props.fetchCart(idUser);
+        this.calTotalPrice();
+      } else {
+        this.setState({
+          error: 'Không còn đủ số lượng'
+        })
+      }
     }
   }
 
-  //   order = async () => {
-  //     const { token, idUser, idCart } = this.props;
-  //     const info = { ShippingAddress: '', ShippingRequired: false, UserId: idUser, Note: '' }
+  order = () => {
+    const { cart, idUser, orders } = this.props;
+    const { items } = cart;
+    const { totalPrice, time } = this.state;
 
-  //     try {
-  //       var data = await callAPI('api/orders', 'POST', info, token);
+    const totalUnReceivedOrder = orders.reduce((total, item) => {
+      if (item.status == 'unConfirmed' || item.status == "confirmed") {
+        return total + 1;
+      }
+    }, 0);
 
-  //       this.props.getCart({ basketId: idCart, userId: idUser, token });
-  //       this.setState(prevState => ({
-  //         ...prevState,
-  //         successMess: 'Đặt sách thành công',
-  //       }))
-  //     } catch (error) {
-
-  //       this.setState(prevState => ({
-  //         ...prevState,
-  //         error: error.response.data.Message
-  //       }))
-
-  //     }
-  //   }
+    var orderId = uuid.v4();
+    var order = { orderId, userId: idUser, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, status: 'unConfirmed', receiveTime: time };
+    if (totalUnReceivedOrder < 2) {
+      var refCart = firebase.database().ref('orders/' + orderId);
+      refCart.set(order);
+      firebase.database().ref('carts').child(cart.id).remove();
+      this.props.fetchCart(idUser);
+      this.props.fetchOrder(idUser);
+      showModal({ orderId }, 'OrderDetail', {
+        title: {
+          text: "Chi tiết đơn hàng",
+          alignment: 'center',
+          leftButtons: {
+            id: 'left',
+            text: 'Huy',
+          }
+        }
+      });
+    }else {
+      this.setState({
+        error: 'Bạn đang có 2 đơn hàng chưa nhận. Vui lòng nhận trước khi tiếp tục order'
+      })
+    }
+  }
 
   navigateToResDetail = (sellerInfo) => {
     const { name } = sellerInfo;
@@ -164,19 +203,34 @@ class Cart extends Component {
 
   navigateToOrder = () => {
     this.changeDeleteSuccess();
-    navigateTo({}, this.props.componentId, 'Order', {
+    navigateTo({ changeQuantity: this.changeQuantity }, this.props.componentId, 'Order', {
       text: 'Danh sách đơn hàng',
-      alignment: 'center'
+      alignment: 'center',
+
     })
   }
 
+  onChange = (timer) => {
+    const { time } = this.state;
+    var finalTime = (time.getMonth() + 1) + '-' + time.getDate() + '-' + time.getFullYear() + ' ' + timer;
+    this.setState(prevState => ({
+      ...prevState,
+      time: new Date(finalTime)
+    }))
+  }
+
   render() {
-    const { askDelete, deleteSuccess, successMess, error, askMess, sellerInfo } = this.state;
+    const { askDelete, deleteSuccess, successMess, error, askMess, sellerInfo, totalPrice, mode, time, loading } = this.state;
+
+    if (!this.props.cart.items) {
+      return <></>;
+    }
     return (
       <>
         <View style={{ marginBottom: 45, marginTop: 20 }}>
+
           <TouchableOpacity onPress={this.navigateToResDetail}>
-            <Text style={styles.sellerName} numberOfLines={1}>{this.state.sellerInfo.name || ''}</Text>
+            <Text style={styles.sellerName} numberOfLines={1}>{sellerInfo.name || ''}</Text>
           </TouchableOpacity>
           <FlatList
             data={this.props.cart.items}
@@ -216,11 +270,26 @@ class Cart extends Component {
             textButton='Xem đơn hàng'
           />
         </View>
-        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+        <View style={styles.bottom}>
+          <View style={styles.time}>
+            <Text style={[styles.txt, { flex: 1 }]}>Giờ đến nhận: </Text>
+            <DateTimePicker
+              testID="dateTimePicker"
+              date={time}
+              mode='time'
+              is24Hour={true}
+              onDateChange={this.onChange}
+            />
+          </View>
+          <View style={styles.totalPrice}>
+            <Text style={[styles.txt, { flex: 1 }]}>Tổng tiền: </Text>
+            <Text style={styles.txt}>{String(totalPrice).replace(/(.)(?=(\d{3})+$)/g, '$1,')}đ</Text>
+          </View>
           <TouchableOpacity style={styles.btnOrder} onPress={this.order}>
-            <Text style={styles.btnText}>Đặt Món</Text>
+            <Text style={styles.btnText}>Đặt hàng</Text>
           </TouchableOpacity>
         </View>
+
       </>
     )
   }
@@ -237,25 +306,51 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 20
   },
+  txt: {
+    fontSize: 17,
+  },
   sellerName: {
     fontFamily: 'SVN-ProximaNova',
     fontSize: 17,
     paddingLeft: 23,
     fontWeight: 'bold'
   },
+  totalPrice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    height: 40,
+    marginHorizontal: 15,
+  },
+  bottom: {
+    position: 'absolute',
+    left: 0, right: 0,
+    bottom: 0,
+    shadowColor: '#111',
+    backgroundColor: '#FFF'
+  },
+  time: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    height: 40,
+    marginHorizontal: 15,
+    marginVertical: 10
+  }
 })
 
 function mapStateToProps(state) {
   return {
     cart: state.productReducer.cart,
+    orders: state.productReducer.orders,
     idUser: state.authReducer.user.id,
-    token: state.authReducer.token
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchCart: (userId) => dispatch(productActions.fetchCart(userId))
+    fetchCart: (userId) => dispatch(productActions.fetchCart(userId)),
+    fetchOrder: (userId) => dispatch(productActions.fetchOrder(userId))
   };
 }
 

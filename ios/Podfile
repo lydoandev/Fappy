@@ -38,6 +38,10 @@ target 'Fappy' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'RNDateTimePicker', :path => '../node_modules/@react-native-community/datetimepicker'
+
+  pod 'react-native-viewpager', :path => '../node_modules/@react-native-community/viewpager'
+
   target 'FappyTests' do
     inherit! :search_paths
     # Pods for testing

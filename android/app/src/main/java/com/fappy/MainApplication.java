@@ -13,6 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import io.invertase.firebase.database.RNFirebaseDatabasePackage;
 
+import com.reactnativecommunity.viewpager.RNCViewPagerPackage;
+
 import java.util.Arrays;
 import com.reactnativenavigation.NavigationApplication;
 import com.reactnativenavigation.react.NavigationReactNativeHost;
@@ -40,8 +42,9 @@ public class MainApplication extends NavigationApplication {
        // Add additional packages you require here
        // No need to add RnnPackage and MainReactPackage
        return Arrays.<ReactPackage>asList(
-         new RNFirebasePackage(),
-          new RNFirebaseDatabasePackage()
+          new RNFirebasePackage(),
+          new RNFirebaseDatabasePackage(),
+          new RNCViewPagerPackage()
        );
    }
 

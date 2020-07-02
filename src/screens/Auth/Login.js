@@ -14,8 +14,8 @@ class LogIn extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      phone: "354654343",
-      password: "1234",
+      phone: "348543343",
+      password: "123456",
       phoneErr: "",
       passwordErr: "",
     }

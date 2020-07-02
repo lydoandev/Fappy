@@ -55,7 +55,6 @@ export default class ItemDish extends Component {
   }
 
   navigateToDetail = () => {
-
     this.props.navigateToDetail({item: this.props.item, sellerInfo: this.state.sellerInfo})
   }
 

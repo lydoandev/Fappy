@@ -5,7 +5,8 @@ const initState = {
   loading: false,
   cart: {
     items: []
-  }
+  },
+  orders: []
 }
 
 
@@ -20,6 +21,16 @@ export const productReducer = (state = initState, action) => {
       return Object.assign({}, state, {
         loading: false,
         cart: action.payload
+      });
+    case actions.FETCH_DATA_SUCCESS: 
+      return Object.assign({}, state, {
+        restaurants: action.payload.restaurants,
+        products: action.payload.products,
+        marketers: action.payload.marketers,
+      });
+    case actions.FETCH_ORDER_SUCCESSED: 
+      return Object.assign({}, state, {
+        orders: action.payload,
       });
     default: return state
   }

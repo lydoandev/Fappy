@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import firebase from 'react-native-firebase'
-
+import { SearchBar } from 'react-native-elements'
 import { Text, View, SectionList, ScrollView, FlatList } from 'react-native'
 import ItemDish from '../../components/Home/ItemDish'
 import navigateTo from '../../until/navigateTo'
@@ -14,59 +14,33 @@ import Loading from "../../components/Home/Loading"
 import fetchData from '../../until/fetchData'
 import RestaurantItem from '../../components/Home/RestaurantItem'
 import IconCart from '../../components/Cart/IconCart'
+import showModal from '../../until/showModal'
 
 class Home extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: false,
+            loading: true,
             products: [],
             restaurants: [],
-            marketers: []
+            marketers: [],
+            search: ''
         }
         Navigation.events().bindComponent(this)
     }
 
     componentDidMount = async () => {
 
-        this.setState({ loading: true })
-
-        const refPro = firebase.database().ref('products')
-        let products = [];
-        await refPro.on('child_added', snapshot => {
-            products.push({ ...snapshot.val(), id: snapshot.key })
-            this.setState({
-                products
-            })
-        })
-
-        const refRes = firebase.database().ref('restaurants')
-        let restaurants = [];
-        await refRes.on('child_added', snapshot => {
-            restaurants.push({ ...snapshot.val(), id: snapshot.key })
-            this.setState({
-                restaurants
-            })
-        })
-
-        const refMar = firebase.database().ref('marketers')
-        let marketers = [];
-        await refMar.on('child_added', snapshot => {
-            marketers.push({ ...snapshot.val(), id: snapshot.key })
-            this.setState({
-                marketers
-            })
-        })
-
         this.props.fetchCart(this.props.user.id);
+        this.props.fetchData();
 
-        setTimeout(() => this.setState({ loading: false }), 2000)
+        setTimeout(() => this.setState({ loading: false }), 3000)
 
     }
 
     filterProduct = () => {
-        const { products, restaurants } = this.state;
+        const { products } = this.props;
         var data = [];
         var dishList = [];
         var ingredientList = [];
@@ -89,7 +63,7 @@ class Home extends Component {
                 data: [{ products: ingredientList }],
             });
         }
-        return data;
+        return data
     }
 
     navigationButtonPressed = ({ buttonId }) => {
@@ -111,11 +85,6 @@ class Home extends Component {
 
     navigateToResDetail = (restaurant) => {
         const { id, name } = restaurant;
-        var page = "";
-        // if (id.includes("RES")) {
-        //     page = "RestaurantDetail"
-        // } else page = "MarketerDetail"
-
         navigateTo(restaurant, this.props.componentId, "RestaurantDetail", {
             title: {
                 text: name,
@@ -133,22 +102,32 @@ class Home extends Component {
     };
 
     navigateToCart = () => {
-       
 
-        const {cart} = this.props;
 
-        navigateTo(cart, this.props.componentId, "Cart", {
+        const { cart } = this.props;
+
+        showModal(cart, "Cart", {
             visible: true,
             title: {
-              text: 'Danh sách giỏ hàng',
-              alignment: 'center'
+                text: 'Danh sách giỏ hàng',
+                alignment: 'center'
             },
             rightButtons: {
-              id: 'deleteAll',
-              icon: require('../../assets/icons/icon_delete.png'),
+                id: 'deleteAll',
+                icon: require('../../assets/icons/icon_delete.png'),
+            }
+        });
+    };
+
+    navigateToSearch = () => {
+        showModal({}, 'Search', {
+            visible: true,
+            title: {
+                text: 'Tìm kiếm',
+                alignment: 'center'
             },
-          });
-    }; 
+        })
+    }
 
     navigateToSeeAll = (data, type) => {
         navigateTo({ data }, this.props.componentId, 'SeeAll',
@@ -159,6 +138,11 @@ class Home extends Component {
                 }
             });
     };
+
+    updateSearch = (search) => {
+        this.setState({ search });
+    }
+
     render() {
         const images = [
             'https://chuphinhmonan.com/wp-content/uploads/2017/03/avalon-1.jpg',
@@ -177,10 +161,10 @@ class Home extends Component {
             createAt: 'Mon Feb 17 2020 16:27:08 GMT+0700'
         };
 
-        const { loading, restaurants, marketers } = this.state;
+        const { loading, search } = this.state;
 
+        const { restaurants, marketers } = this.props;
 
-        var products = this.filterProduct();
         const { isAuthenticated } = this.props;
         if (!isAuthenticated) {
             Navigation.dismissAllModals()
@@ -193,6 +177,13 @@ class Home extends Component {
             })
             return <View />
         }
+        let products = [];
+        
+        if(!loading) {
+            products = this.filterProduct();
+            console.log('Indec product: ', products);
+            
+        }
         if (loading) {
             return (
                 <Loading color='#F2A90F' bkg='#fff'></Loading>
@@ -200,6 +191,16 @@ class Home extends Component {
         }
         return (
             <>
+                <View style={{ marginHorizontal: 15, marginTop: 15 }}>
+                    <SearchBar
+                        inputStyle={{ backgroundColor: 'white' }}
+                        inputContainerStyle={{ backgroundColor: 'white', height: 30 }}
+                        containerStyle={{ backgroundColor: 'white', borderWidth: 1, borderRadius: 15, height: 45, borderColor: '#cccccc', borderTopColor: '#ccc', borderBottomColor: '#ccc' }}
+                        placeholder="Tìm kiếm..."
+                        keyboardAppearance={false}
+                        onTouchStart={this.navigateToSearch}
+                    />
+                </View>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ margin: 15 }}>
                     <Sliders images={images}></Sliders>
                     <SectionList
@@ -248,7 +249,7 @@ class Home extends Component {
 
                     />
                 </ScrollView>
-                {isAuthenticated && <IconCart cart={this.props.cart} navigateToCart={this.navigateToCart}/>}
+                {isAuthenticated && <IconCart cart={this.props.cart} navigateToCart={this.navigateToCart} />}
             </>
         )
     }
@@ -259,13 +260,17 @@ function mapStateToProps(state) {
     return {
         isAuthenticated: state.authReducer.isAuthenticated,
         user: state.authReducer.user,
-        cart: state.productReducer.cart
+        cart: state.productReducer.cart,
+        products: state.productReducer.products,
+        marketers: state.productReducer.marketers,
+        restaurants: state.productReducer.restaurants
     };
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        fetchCart: (userId) => dispatch(productActions.fetchCart(userId))
+        fetchCart: (userId) => dispatch(productActions.fetchCart(userId)),
+        fetchData: () => dispatch(productActions.fetchData())
     }
 }
 
