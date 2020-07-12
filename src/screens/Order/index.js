@@ -29,7 +29,14 @@ class Order extends Component {
 
     render() {
         const { orders } = this.props;
-        const unConfirmOrders = orders.length > 0 ? orders.filter(item => item.status == "unConfirmed") : orders;
+        var unConfirmOrders = [];
+        var unReceived = [];
+        var received = [];
+        if (orders.length > 0) {
+            unConfirmOrders = orders.filter(item => item.status == "unConfirmed");
+            unReceived = orders.filter(item => item.status == "confirmed");
+            received = orders.filter(item => item.status == "received");
+        }
         return (
             <ScrollableTabView
                 style={{ paddingBottom: 10 }}
@@ -53,11 +60,35 @@ class Order extends Component {
                         showsVerticalScrollIndicator={false}
                     />
                 </View>
-                <View tabLabel="Chưa nhận" style={{ marginBottom: 50 }}>
-                    <Text></Text>
+                <View tabLabel="Chưa nhận" style={{ margin: 15 }}>
+                    <FlatList
+                        data={unReceived}
+                        horizontal={false}
+                        renderItem={({ item }) => (
+                            <OrderItem
+                                item={item}
+                                navigateToOrderDetail={this.navigateToOrderDetail}
+                            />
+                        )}
+                        keyExtractor={item => item.id}
+                        showsHorizontalScrollIndicator={false}
+                        showsVerticalScrollIndicator={false}
+                    />
                 </View>
-                <View tabLabel="Đã nhận" style={{ marginBottom: 50 }}>
-                    <Text></Text>
+                <View tabLabel="Đã nhận" style={{ margin: 15 }}>
+                    <FlatList
+                        data={received}
+                        horizontal={false}
+                        renderItem={({ item }) => (
+                            <OrderItem
+                                item={item}
+                                navigateToOrderDetail={this.navigateToOrderDetail}
+                            />
+                        )}
+                        keyExtractor={item => item.id}
+                        showsHorizontalScrollIndicator={false}
+                        showsVerticalScrollIndicator={false}
+                    />
                 </View>
             </ScrollableTabView>
         )

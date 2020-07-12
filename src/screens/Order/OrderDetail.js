@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, RefreshControl } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, RefreshControl, PermissionsAndroid, Linking } from 'react-native'
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { Navigation } from 'react-native-navigation';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 import ReviewOrderItem from '../../components/Home/ReviewOrderItem';
 import firebase from 'react-native-firebase';
+import { getDistance, getPreciseDistance } from 'geolib';
+import Geolocation from 'react-native-geolocation-service'
+// Geolocation.setRNConfiguration({ authorizationLevel: 'whenInUse', skipPermissionRequests: false, });
 
 class OrderDetail extends Component {
 
@@ -14,13 +17,47 @@ class OrderDetail extends Component {
         this.state = {
             openNote: false,
             order: {},
-            refreshing: false
+            refreshing: false,
+            pdis: 0
         }
         Navigation.events().bindComponent(this);
     }
 
-    componentDidMount() {
-        this.getOrder();
+    componentDidMount = async () => {
+        await this.getOrder();
+
+        const locationPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+        if (locationPermission) {
+            this.getCurrentLocation()
+        } else {
+            this.checkLocationPermission();
+        }
+        setInterval(() => this.getOrder(), 1000);
+    }
+
+    getCurrentLocation = () => {
+        Geolocation.getCurrentPosition(({ coords }) => {
+            this.setState({
+                currentPosition: {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                }
+            }, () => this._getPreciseDistance());
+        }, error => {
+            console.log(error)
+        }, { enableHighAccuracy: true, timeout: 10000 })
+    }
+
+    checkLocationPermission = async () => {
+        let locationPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+        if (!locationPermission) {
+            locationPermission = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+            if (locationPermission !== 'granted') {
+                Navigator.showOverlay({ message: 'Để ứng dụng biết được vị trí chính xác, vui lòng cho phép ứng dụng truy cập vị trí của bạn' })
+                return false
+            }
+        }
+        return true
     }
 
     navigationButtonPressed({ buttonId }) {
@@ -29,13 +66,13 @@ class OrderDetail extends Component {
         }
     }
 
-    getOrder = () => {
+    getOrder = async (refreshing = false) => {
         const { orderId } = this.props;
         this.setState({
-            refreshing: true
+            refreshing
         })
         var order;
-        firebase.database().ref("orders/" + orderId).once("value").then(snapshot => {
+        await firebase.database().ref("orders/" + orderId).once("value").then(snapshot => {
             order = snapshot.val();
             this.setState({
                 order,
@@ -44,10 +81,36 @@ class OrderDetail extends Component {
         })
     }
 
+    openOnGoogleMaps = () => {
+        const { location } = this.state.order.seller;
+        Linking.openURL(`google.navigation:q=${location?.latitude},${location?.longitude}`)
+    }
+
+    _getPreciseDistance = () => {
+        const { location } = this.state.order.seller;
+
+        const { currentPosition } = this.state;
+        var pdis = getDistance(
+            { latitude: location.latitude, longitude: location.longitude },
+            { latitude: currentPosition.latitude, longitude: currentPosition.longitude }
+        );
+        this.setState({
+            pdis: pdis
+        })
+
+    };
+
     handleOpenNote = () => {
         this.setState(prevState => ({
             openNote: !prevState.openNote,
         }))
+    }
+
+    cancelOrder = async () => {
+        var order = this.state.order;
+        order.status = 'canceled'
+        await firebase.database().ref('orders').child(order.orderId).update(order);
+        this.getOrder();
     }
 
     getTime = () => {
@@ -57,9 +120,10 @@ class OrderDetail extends Component {
     }
 
     render() {
-        const { openNote, order, refreshing } = this.state;
+        const { openNote, order, refreshing, pdis } = this.state;
         const { seller, items, dateOrder, status, totalPrice, receiveTime } = order;
         const { fullName, phone } = this.props.user;
+
         var activeStep = 1;
         var isComplete = false;
         if (status === 'confirmed') {
@@ -70,27 +134,76 @@ class OrderDetail extends Component {
         }
         if (Object.getOwnPropertyNames(order).length >= 1) {
             return (
-                <ScrollView
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={this.getOrder} />}
-                >
-                    <View style={styles.container}>
-                        <View style={styles.content}>
-                            <Text style={styles.txtTitle}>
-                                {seller.name}
-                            </Text>
-                            <View style={styles.infoRes}>
-                                <Icon
-                                    type="entypo"
-                                    name="location"
-                                    size={19}
-                                    color="#F2A90F"
-                                    style={{ marginHorizontal: 5 }}
-                                />
-                                <Text style={styles.txt} numberOfLines={2}>{seller.address}</Text>
+                <>
+                    <ScrollView
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={() => this.getOrder(true)} />}
+                    >
+                        <View style={styles.container}>
+                            <View style={styles.content}>
+                                <Text style={styles.txtTitle}>
+                                    {seller.name}
+                                </Text>
+                                <View style={styles.infoRes}>
+                                    <Icon
+                                        type="entypo"
+                                        name="location"
+                                        size={19}
+                                        color="#F2A90F"
+                                        style={{ marginHorizontal: 5 }}
+                                    />
+                                    <Text style={styles.txt} numberOfLines={1}>{seller.location.address}</Text>
+                                </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={[styles.txt, { marginLeft: 30, fontWeight: 'bold' }]}>{pdis / 1000} km </Text>
+                                    <TouchableOpacity
+                                        style={{
+                                            margin: 0,
+                                            justifyContent: "center"
+                                        }}
+                                        activeOpacity={1}
+                                        onPress={this.openOnGoogleMaps}
+                                    >
+                                        <Icon
+                                            type="material-community"
+                                            name="directions"
+                                            size={20}
+                                            color="#F2A90F"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.infoRes}>
+                                    <View style={{ flex: 1, flexDirection: 'row' }}>
+                                        <Icon
+                                            type="font-awsome"
+                                            name="phone"
+                                            size={19}
+                                            color="#F2A90F"
+                                            style={{ marginHorizontal: 5 }}
+                                        />
+                                        <Text style={styles.txt} numberOfLines={2}>{seller.phone.substring(0, 4)} {seller.phone.substring(4, 7)} {seller.phone.substring(7, 10)}</Text>
+                                    </View>
+                                </View>
+
                             </View>
-                            <View style={styles.infoRes}>
-                                <View style={{ flex: 1, flexDirection: 'row' }}>
+                        </View>
+
+                        <View style={styles.container}>
+                            <View style={{ margin: 15 }}>
+                                <Text style={styles.txtTitle}>
+                                    Người nhận
+                            </Text>
+                                <View style={styles.infoRes}>
+                                    <Icon
+                                        type="entypo"
+                                        name="user"
+                                        size={19}
+                                        color="#F2A90F"
+                                        style={{ marginHorizontal: 5 }}
+                                    />
+                                    <Text style={styles.txt} numberOfLines={2}>{fullName}</Text>
+                                </View>
+                                <View style={styles.infoRes}>
                                     <Icon
                                         type="font-awsome"
                                         name="phone"
@@ -98,144 +211,125 @@ class OrderDetail extends Component {
                                         color="#F2A90F"
                                         style={{ marginHorizontal: 5 }}
                                     />
-                                    <Text style={styles.txt} numberOfLines={2}>{seller.phone.substring(0, 4)} {seller.phone.substring(4, 7)} {seller.phone.substring(7, 10)}</Text>
+                                    <Text style={styles.txt} numberOfLines={2}>{phone.substring(0, 4)} {phone.substring(4, 7)} {phone.substring(7, 10)}</Text>
                                 </View>
-                            </View>
-
-                        </View>
-                    </View>
-
-                    <View style={styles.container}>
-                        <View style={{ margin: 15 }}>
-                            <Text style={styles.txtTitle}>
-                                Người nhận
-                            </Text>
-                            <View style={styles.infoRes}>
-                                <Icon
-                                    type="entypo"
-                                    name="user"
-                                    size={19}
-                                    color="#F2A90F"
-                                    style={{ marginHorizontal: 5 }}
-                                />
-                                <Text style={styles.txt} numberOfLines={2}>{fullName}</Text>
-                            </View>
-                            <View style={styles.infoRes}>
-                                <Icon
-                                    type="font-awsome"
-                                    name="phone"
-                                    size={19}
-                                    color="#F2A90F"
-                                    style={{ marginHorizontal: 5 }}
-                                />
-                                <Text style={styles.txt} numberOfLines={2}>{phone.substring(0, 4)} {phone.substring(4, 7)} {phone.substring(7, 10)}</Text>
-                            </View>
-                            <View style={styles.infoRes}>
-                                <View style={{ flex: 1, flexDirection: 'row' }}>
-                                    <Icon
-                                        type="simple-line-icon"
-                                        name="clock"
-                                        size={19}
-                                        color="#F2A90F"
-                                        style={{ marginHorizontal: 5 }}
-                                    />
-                                    <Text style={styles.txt} numberOfLines={2}>Giờ đến nhận: {this.getTime()}</Text>
-                                </View>
-                                <View style={{ alignItems: 'flex-end' }}>
-                                    <TouchableOpacity onPress={this.handleOpenNote}>
+                                <View style={styles.infoRes}>
+                                    <View style={{ flex: 1, flexDirection: 'row' }}>
                                         <Icon
-                                            type="material"
-                                            name={openNote ? "arrow-drop-up" : "arrow-drop-down"}
-                                            size={30}
+                                            type="simple-line-icon"
+                                            name="clock"
+                                            size={19}
                                             color="#F2A90F"
                                             style={{ marginHorizontal: 5 }}
                                         />
-                                    </TouchableOpacity>
+                                        <Text style={styles.txt} numberOfLines={2}>Giờ đến nhận: {this.getTime()}</Text>
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <TouchableOpacity onPress={this.handleOpenNote}>
+                                            <Icon
+                                                type="material"
+                                                name={openNote ? "arrow-drop-up" : "arrow-drop-down"}
+                                                size={30}
+                                                color="#F2A90F"
+                                                style={{ marginHorizontal: 5 }}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
-                    {openNote && (
+                        {openNote && (
+                            <View style={styles.container}>
+                                <View style={{ margin: 15 }}>
+                                    <Text style={styles.txtTitle}>Lưu ý: </Text>
+                                    <View style={styles.infoRes}>
+                                        <Icon
+                                            type="simple-line-icon"
+                                            name="note"
+                                            size={19}
+                                            color="#F2A90F"
+                                            style={{ marginHorizontal: 5 }}
+                                        />
+                                        <Text style={styles.txt} numberOfLines={3}>Vui lòng đến đúng địa chỉ và liên hệ với người bán qua số điện thoại trên để nhận hàng</Text>
+                                    </View>
+                                    <View style={styles.infoRes}>
+                                        <Icon
+                                            type="simple-line-icon"
+                                            name="clock"
+                                            size={19}
+                                            color="#F2A90F"
+                                            style={{ marginHorizontal: 5 }}
+                                        />
+                                        <Text style={styles.txt} numberOfLines={3}>Sau 30 phút chưa tới nhận hàng, đơn hàng sẽ tự động huỷ</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+                        <View style={[styles.container, { height: 120, alignContent: 'center' }]}>
+                            <ProgressSteps activeStep={activeStep}
+                                isComplete={isComplete}
+                                completedProgressBarColor='#F2A90F'
+                                activeStepIconBorderColor='#F2A90F'
+                                completedStepIconColor='#F2A90F'
+                                activeLabelColor='#F2A90F'>
+                                <ProgressStep label="Đã đặt" removeBtnRow={false} previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
+                                    <View style={{ alignItems: 'center', height: 20 }}>
+                                        <Text>This is the content within step 1!</Text>
+                                    </View>
+                                </ProgressStep>
+                                <ProgressStep label="Xác thực từ người bán" previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text>This is the content within step 2!</Text>
+                                    </View>
+                                </ProgressStep>
+                                <ProgressStep label="Nhận hàng" removeBtnRow={false} previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text>This is the content within step 3!</Text>
+                                    </View>
+                                </ProgressStep>
+                            </ProgressSteps>
+                        </View>
+                        <View style={styles.container}>
+                            <View style={{ margin: 15, }}>
+                                <Text style={[styles.txtTitle, { marginBottom: 10, }]}>Sản phẩm </Text>
+                                <FlatList
+                                    data={order.items}
+                                    renderItem={({ item }) => (
+                                        <ReviewOrderItem
+                                            item={item}
+                                        />
+                                    )}
+                                    keyExtractor={item => item.id}
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ marginHorizontal: 15 }}
+                                />
+                                <View style={styles.totalPrice}>
+                                    <Text style={[styles.txtTitle, { flex: 1 }]}>Tổng tiền: </Text>
+                                    <Text style={styles.txtTitle}>{String(totalPrice).replace(/(.)(?=(\d{3})+$)/g, '$1,')}đ</Text>
+                                </View>
+                            </View>
+                        </View>
                         <View style={styles.container}>
                             <View style={{ margin: 15 }}>
-                                <Text style={styles.txtTitle}>Lưu ý: </Text>
-                                <View style={styles.infoRes}>
-                                    <Icon
-                                        type="simple-line-icon"
-                                        name="note"
-                                        size={19}
-                                        color="#F2A90F"
-                                        style={{ marginHorizontal: 5 }}
-                                    />
-                                    <Text style={styles.txt} numberOfLines={3}>Vui lòng đến đúng địa chỉ và liên hệ với người bán qua số điện thoại trên để nhận hàng</Text>
-                                </View>
-                                <View style={styles.infoRes}>
-                                    <Icon
-                                        type="simple-line-icon"
-                                        name="clock"
-                                        size={19}
-                                        color="#F2A90F"
-                                        style={{ marginHorizontal: 5 }}
-                                    />
-                                    <Text style={styles.txt} numberOfLines={3}>Sau 30 phút chưa tới nhận hàng, đơn hàng sẽ tự động huỷ</Text>
-                                </View>
+                                <Text style={[styles.txtTitle, { marginBottom: 5 }]}>Liên hệ - CSKH Fappy</Text>
+                                <Text style={styles.txt}>Fappy sẵn sàng hỗ trợ trong trường hợp quý khách cần tư vấn hoặc gặp sự cố với đơn hàng</Text>
+                                <Text style={styles.txt}>Người bán chịu trách nhiệm chính trong các vấn đề liên quan đến chất lượng sản phầm</Text>
+                                <Text style={styles.txt}>Hotline: <Text style={styles.txtTitle}>0348 543 343</Text></Text>
+                                <Text style={styles.txt}>Email: <Text style={styles.txtTitle}>hotrofappy@gmail.com</Text></Text>
                             </View>
+                        </View>
+                    </ScrollView >
+                    {(status == 'canceled' || status == 'unConfirmed') && (
+                        <View>
+                            <TouchableOpacity
+                                disabled={status == 'canceled' && true}
+                                style={[styles.btnCancel, { backgroundColor: status == 'canceled' ? "#F2A90F" : '#a6a6a6' }]}
+                                onPress={this.cancelOrder}>
+                                <Text style={{ fontSize: 17 }}>{status == 'canceled' ? 'Đã huỷ' : 'Huỷ đơn'}</Text>
+                            </TouchableOpacity>
                         </View>
                     )}
-                    <View style={[styles.container, { height: 120, alignContent: 'center' }]}>
-                        <ProgressSteps activeStep={activeStep}
-                            isComplete={isComplete}
-                            completedProgressBarColor='#F2A90F'
-                            activeStepIconBorderColor='#F2A90F'
-                            completedStepIconColor='#F2A90F'
-                            activeLabelColor='#F2A90F'>
-                            <ProgressStep label="Đã đặt" removeBtnRow={false} previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
-                                <View style={{ alignItems: 'center', height: 20 }}>
-                                    <Text>This is the content within step 1!</Text>
-                                </View>
-                            </ProgressStep>
-                            <ProgressStep label="Xác thực từ người bán" previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
-                                <View style={{ alignItems: 'center' }}>
-                                    <Text>This is the content within step 2!</Text>
-                                </View>
-                            </ProgressStep>
-                            <ProgressStep label="Nhận hàng" removeBtnRow={false} previousBtnStyle={{ display: 'none' }} nextBtnStyle={{ display: 'none' }}>
-                                <View style={{ alignItems: 'center' }}>
-                                    <Text>This is the content within step 3!</Text>
-                                </View>
-                            </ProgressStep>
-                        </ProgressSteps>
-                    </View>
-                    <View style={styles.container}>
-                        <View style={{ margin: 15, }}>
-                            <Text style={[styles.txtTitle, { marginBottom: 10, }]}>Sản phẩm </Text>
-                            <FlatList
-                                data={order.items}
-                                renderItem={({ item }) => (
-                                    <ReviewOrderItem
-                                        item={item}
-                                    />
-                                )}
-                                keyExtractor={item => item.id}
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={{ marginHorizontal: 15 }}
-                            />
-                            <View style={styles.totalPrice}>
-                                <Text style={[styles.txtTitle, { flex: 1 }]}>Tổng tiền: </Text>
-                                <Text style={styles.txtTitle}>{String(totalPrice).replace(/(.)(?=(\d{3})+$)/g, '$1,')}đ</Text>
-                            </View>
-                        </View>
-                    </View>
-                    <View style={styles.container}>
-                        <View style={{ margin: 15 }}>
-                            <Text style={[styles.txtTitle, {marginBottom: 5}]}>Liên hệ - CSKH Fappy</Text>
-                            <Text style={styles.txt}>Fappy sẵn sàng hỗ trợ trong trường hợp quý khách cần tư vấn hoặc gặp sự cố với đơn hàng</Text>
-                            <Text style={styles.txt}>Người bán chịu trách nhiệm chính trong các vấn đề liên quan đến chất lượng sản phầm</Text>
-                            <Text style={styles.txt}>Hotline: <Text style={styles.txtTitle}>0348 543 343</Text></Text>
-                            <Text style={styles.txt}>Email: <Text style={styles.txtTitle}>hotrofappy@gmail.com</Text></Text>
-                        </View>
-                    </View>
-                </ScrollView >
+                </>
             )
         }
         return <></>
@@ -271,6 +365,11 @@ const styles = StyleSheet.create({
         marginTop: 5,
         alignItems: 'center',
         marginHorizontal: 10
+    },
+    btnCancel: {
+        height: 45,
+        justifyContent: "center",
+        alignItems: "center"
     },
 })
 

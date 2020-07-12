@@ -3,6 +3,7 @@ import { Navigation } from "react-native-navigation"
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/reduxs/store';
 import { Provider } from 'react-redux';
+import messaging from '@react-native-firebase/messaging'
 
 import Home from "./src/screens/Home"
 import Order from './src/screens/Order'
@@ -17,6 +18,7 @@ import Cart from './src/screens/Home/Cart'
 import ConfirmBeforeOrder from './src/screens/Home/ConfirmBeforeOrder'
 import OrderDetail from './src/screens/Order/OrderDetail'
 import Search from './src/screens/Home/SearchScreen'
+import Splash from './src/screens/Splash'
 
 console.disableYellowBox = true;
 
@@ -35,6 +37,7 @@ Navigation.registerComponent("Cart", () => ReducerComponent(Cart), () => Cart)
 Navigation.registerComponent("ConfirmBeforeOrder", () => ReducerComponent(ConfirmBeforeOrder), () => ConfirmBeforeOrder)
 Navigation.registerComponent("OrderDetail", () => ReducerComponent(OrderDetail), () => OrderDetail)
 Navigation.registerComponent("Search", () => ReducerComponent(Search), () => Search)
+Navigation.registerComponent("Splash", () => ReducerComponent(Splash), () => Splash)
 
 Navigation.registerComponent("SideBar", () => ReducerComponent(SideBar), () => SideBar)
 
@@ -49,85 +52,14 @@ function ReducerComponent(Component) {
   );
 }
 
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log("BRM: ", remoteMessage)
+})
+
 Navigation.setRoot({
   root: {
     component: {
-      name: 'Auth'
-    },
-    // stack: {
-    //   children: [
-    //     {
-    //       bottomTabs: {
-    //         children: [
-    //           {
-    //             component: {
-    //               name: 'HomeScreen',
-    //               options: {
-    //                 bottomTab: {
-    //                   text: 'Trang Chủ',
-    //                   icon: require('./src/assets/icons/icon_home.png'),
-    //                   selectedIconColor: '#ffcc00',
-    //                 },
-    //               },
-    //             },
-    //           },
-    //           {
-    //             component: {
-    //               name: 'OrderScreen',
-    //               options: {
-    //                 topBar: {
-    //                   visible: true,
-    //                   title: {
-    //                     text: 'Danh sách đơn hàng',
-    //                     alignment: 'center'
-    //                   },
-    //                 },
-    //                 bottomTab: {
-    //                   text: 'Đơn Hàng',
-    //                   icon: require('./src/assets/icons/icon_order.png'),
-    //                   selectedIconColor: '#ffcc00',
-    //                 },
-    //               },
-    //             },
-    //           },
-    //           {
-    //             component: {
-    //               name: 'NotificationScreen',
-    //               options: {
-    //                 bottomTab: {
-    //                   text: 'Thông Báo',
-    //                   icon: require('./src/assets/icons/icon_notification.png'),
-    //                   selectedIconColor: '#ffcc00',
-    //                 },
-    //               },
-    //             },
-    //           },
-    //           {
-    //             component: {
-    //               name: 'ProfileScreen',
-    //               options: {
-    //                 bottomTab: {
-    //                   text: 'Tài Khoản',
-    //                   icon: require('./src/assets/icons/icon_profile.png'),
-    //                   selectedIconColor: '#ffcc00',
-    //                 },
-    //               },
-    //             },
-    //           },
-
-    //         ],
-    //         options: {
-    //           backgroundColor: 'white',
-    //           animate: false,
-    //           drawBehind: false,
-    //           titleDisplayMode: 'alwaysHide',
-    //           topBar: {
-    //             visible: false,
-    //           },
-    //         },
-    //       },
-    //     }
-    //   ]
-    // }
+      name: 'Splash'
+    }
   }
 });

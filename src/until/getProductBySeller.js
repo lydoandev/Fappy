@@ -10,17 +10,9 @@ export default async function getProductBySeller(id) {
             }
         })
     var products = [];
-    if (Array.isArray(refProducts)) {
-        refProducts.map((item, key) => {
-            if (item != null) {
-                products.push({...item, id: key})
-            }
-        })
-    } else {
-
-        products = (Object.values(refProducts))
-    }
-
-
+    var keys = Object.keys(refProducts);
+    keys.map(key => {
+       products.push({...refProducts[key], id: key})
+    })
     return products
 }

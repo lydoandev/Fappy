@@ -155,7 +155,7 @@ class Cart extends Component {
   }
 
   order = () => {
-    const { cart, idUser, orders } = this.props;
+    const { cart, idUser, orders, token } = this.props;
     const { items } = cart;
     const { totalPrice, time } = this.state;
 
@@ -163,10 +163,11 @@ class Cart extends Component {
       if (item.status == 'unConfirmed' || item.status == "confirmed") {
         return total + 1;
       }
+      return total
     }, 0);
 
     var orderId = uuid.v4();
-    var order = { orderId, userId: idUser, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, status: 'unConfirmed', receiveTime: time };
+    var order = { status: 'unConfirmed', orderId, userId: idUser, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, receiveTime: time, userDeviceToken: token };
     if (totalUnReceivedOrder < 2) {
       var refCart = firebase.database().ref('orders/' + orderId);
       refCart.set(order);
@@ -277,6 +278,7 @@ class Cart extends Component {
               testID="dateTimePicker"
               date={time}
               mode='time'
+              minDate={new Date()}
               is24Hour={true}
               onDateChange={this.onChange}
             />
@@ -344,6 +346,7 @@ function mapStateToProps(state) {
     cart: state.productReducer.cart,
     orders: state.productReducer.orders,
     idUser: state.authReducer.user.id,
+    token: state.authReducer.token
   };
 }
 

@@ -59,16 +59,18 @@ class Detail extends Component {
     calTimeUsed = () => {
         const { createAt, timeUsed } = this.props.item;
         var now = moment.utc();
-        var dateCreate = moment.utc('Thu Jul 02 2020 16:24:56');
-        var timeExpride = dateCreate.add(timeUsed, "hours").format('YYYY-MM-DD hh:mm:ss');
+        var dateCreate = moment.utc('Thu Jul 04 2020 18:24:56');
+        var timeExpride = dateCreate.add(timeUsed, "hours").format('YYYY-MM-DD HH:mm:ss');
         console.log("Time: ", timeExpride);
         
-        var duration =moment.utc(timeExpride).diff(now, 'hours');
-        // var hours = moment.utc(duration.asMilliseconds()).format("HH:mm:ss");
-        console.log(duration);
+        var duration =moment.duration(now.diff(timeExpride));
+        var hours = 0;
+        if(duration.asHours() < 0){
+            var hi = -(duration.asMilliseconds());
+            hours = moment.utc(hi).format("HH:mm:ss");
+        }
         
-        var hoursUsed = moment.duration(moment(timeUsed, "hh:mm:ss").diff(moment(hours, 'hh:mm:ss')));
-        return moment.utc(hoursUsed.asMilliseconds()).format("HH:mm:ss");
+        return hours;
     }
 
     navigateToSeeAll = () => {
@@ -289,7 +291,7 @@ const styles = StyleSheet.create({
         height: 45,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F2A90F"
+        backgroundColor: "#F2A90F",
     },
     btnText: {
         color: '#fff',

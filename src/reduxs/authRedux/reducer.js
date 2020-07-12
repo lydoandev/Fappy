@@ -7,7 +7,8 @@ const initState = {
   user: {},
   cart: [],
   idCart: '',
-  notifications: []
+  notifications: [],
+  token: ''
 }
 
 
@@ -33,6 +34,10 @@ export const authReducer = (state = initState, action) => {
         isAuthenticated: false,
         user: {},
         error: ''
+      })
+    case Type.UPDATE_DEVICE_TOKEN:
+      return Object.assign({}, state, {
+        token: action.payload
       })
     case Type.GET_NOTIFICATIONS:
       return Object.assign({}, state, {

@@ -181,6 +181,7 @@ android {
 }
 
 dependencies {
+    implementation project(':@react-native-community_geolocation')
     implementation project(':@react-native-community_viewpager')
     implementation project(':react-native-vector-icons')
     implementation project(':react-native-firebase')
@@ -188,6 +189,8 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation project(':react-native-navigation')
     implementation "androidx.multidex:multidex:2.0.0"
+
+    implementation project(':react-native-push-notification')
 
     implementation "com.google.android.gms:play-services-base:16.1.0"
     implementation "com.google.firebase:firebase-core:16.0.9"

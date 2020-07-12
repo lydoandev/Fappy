@@ -66,7 +66,7 @@ export default class RestaurantDetail extends Component {
         var isOpen = this.checkIsOpen();
         const { products, seeHourOpen } = this.state;
 
-        const { name, address, image, starRating, openHour, closeHour } = this.props;
+        const { name, location, image, starRating, openHour, closeHour } = this.props;
         return (
             <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
                 <View>
@@ -74,7 +74,7 @@ export default class RestaurantDetail extends Component {
                     <View style={styles.generalInfo}>
                         <Text style={styles.res_name}>{name}</Text>
                         {/* <Icon type='entypo' name='location-pin' color='#F2A90F' size={20}></Icon> */}
-                        <Text>{address}</Text>
+                        <Text>{location.address}</Text>
                         {/* <Text>(+84) {phone}</Text> */}
                         <StarIcon star={starRating} />
                         <View style={styles.hours}>
