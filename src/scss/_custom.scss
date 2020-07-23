@@ -1,0 +1,27 @@
+// Here you can add other styles
+.image {
+    width: 100px;
+    height: 80px;
+}
+
+.table tbody td {
+    vertical-align: middle;
+}
+.card-header{
+    display: flex;
+    justify-content: space-between;
+}
+.btn-add-user{
+    width: 10%;
+}
+.c-sidebar{
+    background-color: #181f2a;
+    .c-sidebar-nav-link:hover{
+        background-color: orange;
+    }
+        
+    }
+
+.card-header{
+    background-color: #ffa500c7;
+}
