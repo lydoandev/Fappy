@@ -12,7 +12,9 @@ class LocalNotificationService {
           return
         }
         notification.userInteraction = true
-        onOpenNotification(notification.data)
+        if(notification.userInteraction){
+          onOpenNotification(notification);
+        }
       },
       popInitialNotification: true,
     })

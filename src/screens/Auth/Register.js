@@ -165,7 +165,8 @@ class Register extends Component {
           lastName,
           fullName: lastName + ' ' + firstName,
           phone,
-          password
+          password,
+          role: 'buyer'
         }
         
         await userRef.child(key).update(user).then(() => {

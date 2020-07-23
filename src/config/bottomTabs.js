@@ -67,6 +67,7 @@ export const sideMenu = {
                             },
                             {
                                 component: {
+                                    id: 'NOTIFICATION',
                                     name: 'NotificationScreen',
                                     options: {
                                         topBar: {

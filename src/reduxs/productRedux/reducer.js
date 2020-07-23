@@ -6,7 +6,8 @@ const initState = {
   cart: {
     items: []
   },
-  orders: []
+  orders: [],
+  notifications: []
 }
 
 
@@ -22,15 +23,19 @@ export const productReducer = (state = initState, action) => {
         loading: false,
         cart: action.payload
       });
-    case actions.FETCH_DATA_SUCCESS: 
+    case actions.FETCH_DATA_SUCCESS:
       return Object.assign({}, state, {
         restaurants: action.payload.restaurants,
         products: action.payload.products,
         marketers: action.payload.marketers,
       });
-    case actions.FETCH_ORDER_SUCCESSED: 
+    case actions.FETCH_ORDER_SUCCESSED:
       return Object.assign({}, state, {
         orders: action.payload,
+      });
+    case actions.FETCH_NOTIFICATION_SUCCESSED:
+      return Object.assign({}, state, {
+        notifications: action.payload,
       });
     default: return state
   }

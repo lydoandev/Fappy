@@ -16,6 +16,7 @@ import { fcmService } from '../../config/notification/FCMService'
 import { localNotificationService } from '../../config/notification/LocalNotificationService'
 import { Dimensions } from 'react-native';
 import { connect } from 'react-redux'
+import { Navigation } from 'react-native-navigation'
 
 const styles = StyleSheet.create({
   container: {
@@ -70,7 +71,6 @@ class Splash extends React.Component {
   }
 
   onNotification = (notify) => {
-    console.log("Splash -> onNotification -> notify", notify)
     const options = {
       playSound: false
     }
@@ -81,10 +81,19 @@ class Splash extends React.Component {
       notify,
       options
     )
+
+    const { id } = this.props.user;
+    this.props.fetchOrder(id);
+    this.props.fetchNotification(id);
   }
 
-  onOpenNotification = (data) => {
-    this.props.fetchOrder(this.props.user.id)
+  onOpenNotification = (notification) => {
+    console.log("Splash -> onOpenNotification -> data", notification);
+    Navigation.mergeOptions('NOTIFICATION', {
+      bottomTabs: {
+        currentTabIndex: 2
+      }
+    });
   }
 
   setAskPermission = () => {
@@ -153,7 +162,8 @@ function mapStateToProps(state) {
 const mapDispatchToProps = dispatch => {
   return {
     onChangeDeviceToken: (token) => dispatch(userActions.updateDeviceToken(token)),
-    fetchOrder: (userId) => dispatch(productActions.fetchOrder(userId))
+    fetchOrder: (userId) => dispatch(productActions.fetchOrder(userId)),
+    fetchNotification: (userId) => dispatch(productActions.fetchNotification(userId))
   }
 }
 

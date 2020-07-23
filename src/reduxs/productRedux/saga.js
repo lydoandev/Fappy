@@ -62,7 +62,7 @@ export function* fetchOrder(action) {
 
       var result = [];
 
-      orders.key.map(item => {
+      orders.key?.map(item => {
         result.push({
           id: item,
           ...orders.order[item]
@@ -76,9 +76,33 @@ export function* fetchOrder(action) {
   }
 }
 
+export function* fetchNotification(action) {
+  try {
+    var notifications = yield firebase.database().ref('notifications').orderByChild("userId")
+      .equalTo(action.payload).once('value')
+      .then(snapshot => {
+        if (snapshot.val()) {
+          return { notifications: snapshot.val(), key: Object.keys(snapshot.val()) };
+        } else return {}
+      })
+
+      var result = [];
+
+      notifications.key?.map(item => {
+        result.push({
+          ...notifications.notifications[item]
+        })
+      })
+    yield put({ type: actions.FETCH_NOTIFICATION_SUCCESSED, payload: result });
+
+  } catch (error) {
+    console.log('Error: ', error);
+  }
+}
+
 export const watchProductSaga = [
   takeLatest(actions.FETCH_CART, fetchCart),
   takeLatest(actions.FETCH_DATA, fetchData),
-  takeLatest(actions.FETCH_ORDER, fetchOrder)
-
+  takeLatest(actions.FETCH_ORDER, fetchOrder),
+  takeLatest(actions.FETCH_NOTIFICATION, fetchNotification)
 ]
