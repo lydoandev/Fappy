@@ -12,11 +12,13 @@ import Slide2 from '../../assets/images/Slide2.png';
 import Slide3 from '../../assets/images/Slide3.jpeg';
 import * as userActions from '../../reduxs/authRedux/actions'
 import * as productActions from '../../reduxs/productRedux/actions'
+import * as appActions from '../../reduxs/appRedux/actions'
 import { fcmService } from '../../config/notification/FCMService'
 import { localNotificationService } from '../../config/notification/LocalNotificationService'
 import { Dimensions } from 'react-native';
-import { connect } from 'react-redux'
-import { Navigation } from 'react-native-navigation'
+import { connect } from 'react-redux';
+import { sideMenu } from '../../config/bottomTabs';
+import { Navigation } from 'react-native-navigation';
 
 const styles = StyleSheet.create({
   container: {
@@ -50,6 +52,7 @@ class Splash extends React.Component {
     if (!locationPermission) {
       await this.checkLocationPermission()
     }
+    this.isStarted();
   }
 
   checkLocationPermission = async () => {
@@ -64,10 +67,23 @@ class Splash extends React.Component {
     return true
   }
 
+  isStarted = () => {
+    const { isStarted } = this.props;
+    console.log("Splash -> isStarted -> isStarted", isStarted)
+    if (isStarted) {
+      Navigation.setRoot({
+        root: {
+          sideMenu,
+        },
+      });
+    }
+  }
+
   // NOTIFICATION SETUP
   onRegister = (token) => {
-    console.log("Splash -> onRegister -> token", token)
-    this.props.onChangeDeviceToken(token)
+    console.log("Splash -> onRegister -> token", token);
+    this.props.onChangeDeviceToken(token);
+    this.props.onUpdateDeviceToken(token);
   }
 
   onNotification = (notify) => {
@@ -88,7 +104,7 @@ class Splash extends React.Component {
   }
 
   onOpenNotification = (notification) => {
-    console.log("Splash -> onOpenNotification -> data", notification);
+    Navigation.dismissAllModals();
     Navigation.mergeOptions('NOTIFICATION', {
       bottomTabs: {
         currentTabIndex: 2
@@ -116,6 +132,7 @@ class Splash extends React.Component {
           }}>
           <View style={styles.slideContainer}>
             <SwiperSlider
+              getStarted={this.props.getStarted}
               sourceImage={Slide1}
               title="Món ăn ngon và giá hợp lí"
               description="Rất nhiều món ăn ngon, chất lượng và giá thành hợp túi tiền"
@@ -123,6 +140,7 @@ class Splash extends React.Component {
           </View>
           <View style={styles.slideContainer}>
             <SwiperSlider
+              getStarted={this.props.getStarted}
               sourceImage={Slide2}
               title="Thêm vào giỏ và đặt món"
               description="Món ăn sẽ được giữ trong 30 phút. Hãy chắc chắn là bạn đến lấy kịp giờ"
@@ -130,6 +148,7 @@ class Splash extends React.Component {
           </View>
           <View style={styles.slideContainer}>
             <SwiperSlider
+              getStarted={this.props.getStarted}
               sourceImage={Slide3}
               title="Tận hưởng món ăn"
               description="Chọn những món ăn, nguyên liệu yêu thích và tận hưởng cuốn món ăn mà mình yêu thích thôi nào."
@@ -155,13 +174,16 @@ function mapStateToProps(state) {
     cart: state.productReducer.cart,
     products: state.productReducer.products,
     marketers: state.productReducer.marketers,
-    restaurants: state.productReducer.restaurants
+    restaurants: state.productReducer.restaurants,
+    isStarted: state.appReducer.isStarted
   };
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    onChangeDeviceToken: (token) => dispatch(userActions.updateDeviceToken(token)),
+    onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken()),
+    getStarted: () => dispatch(appActions.getStarted()),
+    onChangeDeviceToken: (token) => dispatch(appActions.changeDiviceToken(token)),
     fetchOrder: (userId) => dispatch(productActions.fetchOrder(userId)),
     fetchNotification: (userId) => dispatch(productActions.fetchNotification(userId))
   }

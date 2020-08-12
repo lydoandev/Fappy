@@ -4,10 +4,14 @@ import { Icon } from 'react-native-elements'
 import format from '../../until/dateFomrter'
 
 export default class ItemNotification extends Component {
+
+    openNotification = () => {
+        this.props.openNotification(this.props.item);
+    }
     render() {
         const { createAt, notification, order, isSeen } = this.props.item;
         return (
-            <TouchableOpacity style={[styles.notifi, { backgroundColor: isSeen ? '#fff' : '#E4E9F1', }]} onPress={this.updateSeen}>
+            <TouchableOpacity style={[styles.notifi, { backgroundColor: isSeen ? '#fff' : '#E4E9F1', }]} onPress={this.openNotification}>
                 <TouchableOpacity style={[{ backgroundColor: '#F2A90F' }, styles.icon]}>
                     <Icon
                         type="font-awesome"

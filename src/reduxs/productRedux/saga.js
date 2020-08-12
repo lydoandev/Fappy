@@ -2,6 +2,7 @@
 import { put, takeLatest, call } from 'redux-saga/effects';
 import * as actions from './actions';
 import firebase from 'react-native-firebase'
+import { store } from '../store'
 
 export function* fetchData() {
   var products = [];
@@ -52,8 +53,9 @@ export function* fetchCart(action) {
 
 export function* fetchOrder(action) {
   try {
-    var orders = yield firebase.database().ref('orders').orderByChild("userId")
-      .equalTo(action.payload).once('value')
+    const { user } = store.getState().authReducer;
+    var orders = yield firebase.database().ref('orders').orderByChild("buyer/id")
+      .equalTo(user.id).once('value')
       .then(snapshot => {
         if (snapshot.val()) {
           return {order: snapshot.val(), key: Object.keys(snapshot.val())};

@@ -2,12 +2,15 @@ import React, { Component } from 'react'
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, RefreshControl, PermissionsAndroid, Linking } from 'react-native'
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
+import uuid from 'react-native-uuid'
 import { Navigation } from 'react-native-navigation';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 import ReviewOrderItem from '../../components/Home/ReviewOrderItem';
 import firebase from 'react-native-firebase';
 import { getDistance, getPreciseDistance } from 'geolib';
+import getCommentBySeller from '../../until/getCommentBySeller'
 import Geolocation from 'react-native-geolocation-service'
+import CommentForm from '../../components/Home/CommentForm';
 // Geolocation.setRNConfiguration({ authorizationLevel: 'whenInUse', skipPermissionRequests: false, });
 
 class OrderDetail extends Component {
@@ -18,13 +21,16 @@ class OrderDetail extends Component {
             openNote: false,
             order: {},
             refreshing: false,
-            pdis: 0
+            pdis: 0,
+            openCommentForm: false,
+            comment: {}
         }
         Navigation.events().bindComponent(this);
     }
 
     componentDidMount = async () => {
         await this.getOrder();
+        await this.getComment();
 
         const locationPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
         if (locationPermission) {
@@ -32,7 +38,20 @@ class OrderDetail extends Component {
         } else {
             this.checkLocationPermission();
         }
-        setInterval(() => this.getOrder(), 1000);
+        // setInterval(() => this.getOrder(), 1000);
+    }
+
+    getComment = async() => {
+        var comment = await firebase.database().ref("comments").orderByChild('buyer/id')
+        .equalTo(this.props.user.id).once('value')
+        .then(snapshot => {
+            if (snapshot.val() != null) {
+                return Object.values(snapshot.val())[0]
+            }
+        });
+        this.setState({
+            comment
+        })
     }
 
     getCurrentLocation = () => {
@@ -119,10 +138,37 @@ class OrderDetail extends Component {
         return time.getHours() + ':' + time.getMinutes();
     }
 
+    openCommentForm = () => {
+        this.setState(prevState => ({
+            openCommentForm: !prevState.openCommentForm
+        }))
+    }
+
+    addComment = (comment, rating) => {
+        var commentId = uuid.v4();
+        var comment = {
+            buyer: this.props.user,
+            sellerId: this.state.order.seller.id,
+            rating,
+            comment,
+            id: commentId
+        }
+        firebase.database().ref('comments/' + commentId).set(comment);
+        this.openCommentForm();
+    }
+
+    updateComment = async (comment) => {
+        await firebase.database().ref("comments").child(comment.id).update(comment);
+        this.openCommentForm();
+        this.getComment();
+    }
+
     render() {
-        const { openNote, order, refreshing, pdis } = this.state;
+        const { openNote, order, refreshing, pdis, openCommentForm, comment } = this.state;
         const { seller, items, dateOrder, status, totalPrice, receiveTime } = order;
         const { fullName, phone } = this.props.user;
+        console.log('Cmt: ', comment);
+        
 
         var activeStep = 1;
         var isComplete = false;
@@ -307,6 +353,19 @@ class OrderDetail extends Component {
                                     <Text style={[styles.txtTitle, { flex: 1 }]}>Tổng tiền: </Text>
                                     <Text style={styles.txtTitle}>{String(totalPrice).replace(/(.)(?=(\d{3})+$)/g, '$1,')}đ</Text>
                                 </View>
+                                {isComplete && <View style={{ marginTop: 20 }}>
+                                    <TouchableOpacity style={styles.btnComment} onPress={this.openCommentForm}>
+                                        <Text style={{ fontWeight: 'bold' }}>Chia sẻ cảm nhận về cửa hàng</Text>
+                                    </TouchableOpacity>
+                                </View>}
+                                {openCommentForm && <CommentForm
+                                    comment={comment}
+                                    isUpdate={Object.keys(comment).length != 0}
+                                    modalVisible={openCommentForm}
+                                    setModalVisible={this.openCommentForm}
+                                    addComment={this.addComment}
+                                    updateComment={this.updateComment}
+                                />}
                             </View>
                         </View>
                         <View style={styles.container}>
@@ -370,6 +429,13 @@ const styles = StyleSheet.create({
         height: 45,
         justifyContent: "center",
         alignItems: "center"
+    },
+    btnComment: {
+        borderRadius: 10,
+        height: 45,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#e6e6e6",
     },
 })
 

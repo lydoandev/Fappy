@@ -8,7 +8,7 @@ export const Star = props => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <StarIcon star={star}></StarIcon>
-      <Icon style={{ marginLeft: 10 }} name='tag' color='#ff6666'></Icon>
+      <Icon style={{ marginLeft: 10 }} name='tag' color='#F2A90F'></Icon>
     </View>
   );
 };

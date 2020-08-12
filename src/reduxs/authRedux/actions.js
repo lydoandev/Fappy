@@ -5,6 +5,8 @@ export const LOGOUT = "LOGOUT"
 
 export const UPDATE_DEVICE_TOKEN = "UPDATE_DEVICE_TOKEN"
 
+export const UPDATE_DEVICE_TOKEN_SUCCESSED = "UPDATE_DEVICE_TOKEN_SUCCESSED"
+
 
 export const loginSuccessed = (user) => {
   return { type: LOGIN_SUCCESSED, payload: user }

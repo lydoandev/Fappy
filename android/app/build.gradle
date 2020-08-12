@@ -181,6 +181,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-linear-gradient')
     implementation project(':@react-native-community_geolocation')
     implementation project(':@react-native-community_viewpager')
     implementation project(':react-native-vector-icons')
@@ -191,10 +192,11 @@ dependencies {
     implementation "androidx.multidex:multidex:2.0.0"
 
     implementation project(':react-native-push-notification')
-
+    implementation project(':react-native-linear-gradient')
     implementation "com.google.android.gms:play-services-base:16.1.0"
     implementation "com.google.firebase:firebase-core:16.0.9"
     implementation "com.google.firebase:firebase-database:17.0.0"
+    
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")

@@ -1,12 +1,14 @@
 import React, { Component } from 'react'
 import firebase from 'react-native-firebase'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native"
 import InputText from '../../components/Form/InputText'
 import Title from '../../components/Form/Title'
 import Error from '../../components/Form/Error'
 import { connect } from 'react-redux'
 import * as userActions from '../../reduxs/authRedux/actions'
 import Loading from '../../components/Home/Loading'
+import LinearGradient from 'react-native-linear-gradient';
+
 
 // import TextInputState from 'react-native/lib/TextInputState';
 
@@ -166,11 +168,12 @@ class Register extends Component {
           fullName: lastName + ' ' + firstName,
           phone,
           password,
-          role: 'buyer'
+          role: 'buyer',
         }
         
         await userRef.child(key).update(user).then(() => {
-          this.props.loginSuccessed(user)
+          this.props.loginSuccessed(user);
+          this.props.onUpdateDeviceToken();
         })
       }
       this.setState({ loading: false })
@@ -187,13 +190,18 @@ class Register extends Component {
       )
     } else
       return (
-        <ScrollView style={{ backgroundColor: '#F2A90F' }} showsVerticalScrollIndicator={false}>
-          <View style={{ flex: 1, margin: 15, flexDirection: 'column' }}>
-            <View style={styles.titleContent}><Text style={{ fontSize: 20 }}>Đăng kí</Text></View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <LinearGradient colors={['#2974FA', '#38ABFD', '#43D4FF']} style={styles.gradient}>
+            <View style={styles.contentLogo}>
+              <Image source={require('../../assets/images/logo.png')} style={styles.logo}></Image>
+            </View>
+          </LinearGradient>
+          <View style={{ flex: 1, margin: 15, flexDirection: 'column', borderRadius: 20, backgroundColor: '#fff', padding: 10 }}>
             <View style={{ flex: 1, marginBottom: 8 }}>
               <Title title="Tên người dùng *"></Title>
               <InputText
                 name="firstName"
+                icon='user'
                 value={firstName}
                 getData={this.getData}
                 onSubmitEditing={() => this.refInput.getInnerRef().focus()}
@@ -202,22 +210,22 @@ class Register extends Component {
             </View>
             <View style={{ flex: 1, marginBottom: 8, }}>
               <Title title="Họ *"></Title>
-              <InputText name="lastName" value={lastName} getData={this.getData}></InputText>
+              <InputText name="lastName" value={lastName} getData={this.getData} icon='user'></InputText>
               <Error errorText={lastNameErr}></Error>
             </View>
             <View style={{ flex: 1, marginBottom: 8, }}>
               <Title title="Số điện thoại *"></Title>
-              <InputText name="phone" value={phone} getData={this.getData}></InputText>
+              <InputText name="phone" value={phone} getData={this.getData} icon='phone'></InputText>
               <Error errorText={phoneErr}></Error>
             </View>
             <View style={{ flex: 1, marginBottom: 8, }}>
               <Title title="Mật khẩu *"></Title>
-              <InputText pass={true} name="password" value={password} getData={this.getData}></InputText>
+              <InputText pass={true} name="password" value={password} getData={this.getData} icon='lock'></InputText>
               <Error errorText={passErr}></Error>
             </View>
             <View style={{ flex: 1, marginBottom: 8, }}>
               <Title title="Xác nhận mật khẩu *"></Title>
-              <InputText pass={true} name="confirmPass" value={confirmPass} getData={this.getData}></InputText>
+              <InputText pass={true} name="confirmPass" value={confirmPass} getData={this.getData} icon='lock'></InputText>
               <Error errorText={confirmPassErr}></Error>
 
             </View>
@@ -269,19 +277,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#fff',
-    backgroundColor: '#fff'
+    borderColor: '#F2A90F',
+    backgroundColor: '#F2A90F'
   },
   signUpText: {
-    color: '#F2A90F',
+    color: '#fff',
     textAlign: 'center',
     fontWeight: 'bold'
+  },
+  gradient: {
+    height: 170,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30
+  },
+  logo: {
+    width: 250,
+    height: 250
+  },
+  contentLogo: {
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })
 
 const mapDispatchToProps = dispatch => {
   return {
-    loginSuccessed: user => dispatch(userActions.loginSuccessed(user))
+    loginSuccessed: user => dispatch(userActions.loginSuccessed(user)),
+    onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken())
   }
 }
 

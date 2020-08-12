@@ -35,9 +35,9 @@ export const authReducer = (state = initState, action) => {
         user: {},
         error: ''
       })
-    case Type.UPDATE_DEVICE_TOKEN:
+    case Type.UPDATE_DEVICE_TOKEN_SUCCESSED:
       return Object.assign({}, state, {
-        token: action.payload
+        user: action.payload
       })
     case Type.GET_NOTIFICATIONS:
       return Object.assign({}, state, {

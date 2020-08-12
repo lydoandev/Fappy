@@ -1,18 +1,69 @@
 import React, { Component } from 'react'
-import { Text, View, TouchableOpacity, FlatList } from 'react-native';
+import { Text, ScrollView, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import ItemNotification from '../../components/Notification/ItemNotification'
 import { connect } from 'react-redux'
-import * as productActions from '../../reduxs/productRedux/actions'
+import * as productActions from '../../reduxs/productRedux/actions';
+import showModal from '../../until/showModal';
+import firebase from 'react-native-firebase'
 
 class Notification extends Component {
-    componentDidMount(){
-        const {id} = this.props.user;
-        this.props.fetchNotification(id);
+    constructor(props){
+        super(props);
+        this.state = {
+            refreshing: false
+        }
     }
+
+    componentDidMount() {
+        const { id } = this.props.user;
+        this.props.fetchNotification(id);
+        // setInterval(() => this.props.fetchNotification(id), 1000);
+    }
+
+    getNotification = (refreshing = false) => {
+        this.setState({
+            refreshing
+        })
+        this.props.fetchNotification(this.props.user.id);
+        this.setState({
+            refreshing: false
+        })
+    }
+
+    openNotification = (item) => {
+        const { order, id } = item;
+        item.isSeen = true;
+        firebase.database().ref('notifications').child(id).update(item);
+
+        showModal({ orderId: order.orderId }, 'OrderDetail', {
+            title: {
+                text: "Chi tiết đơn hàng",
+                alignment: 'center',
+                leftButtons: {
+                    id: 'left',
+                    text: 'Huy',
+                }
+            }
+        });
+    }
+
+    seenAll = () => {
+        const { notifications} = this.props;
+        notifications.map(item => {
+            item.isSeen = true;
+            firebase.database().ref('notifications').child(item.id).update(item);
+        });
+        this.props.fetchNotification(this.props.user.id);
+    }
+
     render() {
-        const {notifications} = this.props;
+        const { notifications } = this.props;
+        const { refreshing } = this.state;
         return (
-            <View style={{ marginTop: 20, marginBottom: 40 }}>
+            <ScrollView style={{ marginTop: 20, marginBottom: 40 }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={() => this.getNotification(true)} />}
+            >
                 <TouchableOpacity onPress={this.seenAll}>
                     <Text
                         style={{ alignSelf: 'flex-end', color: '#ababab', fontSize: 15, paddingRight: 15, paddingBottom: 15 }}
@@ -26,10 +77,10 @@ class Notification extends Component {
                     renderItem={({ item }) => (
                         <ItemNotification
                             item={item}
-                            updateSeen={this.updateSeen}
+                            openNotification={this.openNotification}
                         />
                     )} />
-            </View>
+            </ScrollView>
         )
     }
 }

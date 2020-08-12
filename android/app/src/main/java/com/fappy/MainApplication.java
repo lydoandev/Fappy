@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.BV.LinearGradient.LinearGradientPackage;
 // import com.reactnativecommunity.geolocation.GeolocationPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import io.invertase.firebase.RNFirebasePackage;
@@ -57,7 +58,8 @@ public class MainApplication extends NavigationApplication {
           new MapsPackage(),
           new ReactNativeFirebaseAppPackage(),
           new ReactNativeFirebaseMessagingPackage(),
-          new ReactNativePushNotificationPackage()
+          new ReactNativePushNotificationPackage(),
+          new LinearGradientPackage()
        );
    }
 

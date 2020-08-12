@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-
+import LinearGradient from 'react-native-linear-gradient';
 import { Keyboard, View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Image } from "react-native"
 import InputText from '../../components/Form/InputText'
 import Title from '../../components/Form/Title'
 import Error from '../../components/Form/Error'
 import * as userActions from '../../reduxs/authRedux/actions'
+import * as appActions from '../../reduxs/appRedux/actions'
 import firebase from 'react-native-firebase'
 
 import Loading from '../../components/Home/Loading'
@@ -79,6 +80,7 @@ class LogIn extends Component {
               //     } else return {}
               //   })
               this.props.loginSucceeded(user);
+              this.props.onUpdateDeviceToken();
             } else {
               this.setState({ message: 'Tên tài khoản hoặc mật khẩu không đúng' })
             }
@@ -104,43 +106,47 @@ class LogIn extends Component {
       )
     }
     return (
-      <ScrollView style={{ backgroundColor: '#F2A90F' }}>
-        <View style={{ flex: 1, margin: 15, flexDirection: 'column', }}>
-          <View style={styles.titleContent}>
-            <Text style={{ fontSize: 20 }}>Chào mừng bạn đến với Fappy</Text>
-          </View>
-          <View style={styles.wellcome}>
-            <Text style={{ fontSize: 17 }}>Chào mừng bạn đến với Fappy!</Text>
-            <Text style={{ color: '#616161' }}>Vui lòng đăng nhập để tiếp tục</Text>
-          </View>
-          <Error errorText={message}></Error>
-          <View style={{ flex: 1, marginBottom: 5, marginTop: 10 }}>
-            <Title title="Số điện thoại *"></Title>
-            <View style={{ flexDirection: 'row' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', height: 42, borderRadius: 5, backgroundColor: '#fff', padding: 6, marginRight: 10 }}>
+      <ScrollView>
+        <View style={{ flex: 1 }}>
+          <LinearGradient colors={['#2974FA', '#38ABFD', '#43D4FF']} style={styles.gradient}>
+            <View style={styles.contentLogo}>
+              <Image source={require('../../assets/images/logo.png')} style={styles.logo}></Image>
+            </View>
+          </LinearGradient>
+          <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 10, flex: 1, margin: 15, flexDirection: 'column'  }}>
+            <View style={styles.wellcome}>
+              <Text style={{ fontSize: 17 }}>Chào mừng bạn đến với Fappy!</Text>
+              <Text style={{ color: '#616161' }}>Vui lòng đăng nhập để tiếp tục</Text>
+            </View>
+            <Error errorText={message}></Error>
+            <View style={{ flex: 1, marginBottom: 10, marginTop: 10 }}>
+              <Title title="Số điện thoại *"></Title>
+              <View style={{ flexDirection: 'row' }}>
+                {/* <View style={{ flexDirection: 'row', alignItems: 'center', height: 42, borderRadius: 5, backgroundColor: '#fff', padding: 6, marginRight: 10 }}>
                 <Image source={require('../../assets/icons/icon_vn.png')}></Image>
                 <Text>+84</Text>
+              </View> */}
+                <View style={{ flex: 1 }}>
+                  <InputText name="phone" value={phone} getData={this.getData} icon='phone'></InputText>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <InputText name="phone" value={phone} getData={this.getData}></InputText>
-              </View>
+              <Error errorText={phoneErr} />
             </View>
-            <Error errorText={phoneErr} />
-          </View>
-          <View style={{ flex: 1, marginBottom: 5, }}>
-            <Title title="Mật khẩu *"></Title>
-            <InputText pass={true} name="password" value={password} getData={this.getData}></InputText>
-            <Error errorText={passwordErr}></Error>
-          </View>
-          <View style={styles.buttonContent}>
-            <TouchableOpacity style={styles.btnLogin} onPress={this.login}><Text style={styles.loginText}>ĐĂNG NHẬP</Text></TouchableOpacity>
-            {/* <TouchableOpacity style={styles.btnSignUp} onPress={this.signUp}><Text style={styles.signUpText}>Đăng kí</Text></TouchableOpacity> */}
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
-            <TouchableOpacity onPress={this.signUp}>
-              <Text style={{ color: '#616161' }}>Đăng kí</Text>
-            </TouchableOpacity>
-            <Text style={{ color: '#616161' }}>Quên mật khẩu?</Text>
+            <View style={{ flex: 1, marginBottom: 10, }}>
+              <Title title="Mật khẩu *"></Title>
+              <InputText pass={true} name="password" value={password} getData={this.getData} icon='lock'></InputText>
+              <Error errorText={passwordErr}></Error>
+            </View>
+            <View style={styles.buttonContent}>
+              <TouchableOpacity style={styles.btnLogin} onPress={this.login}><Text style={styles.loginText}>ĐĂNG NHẬP</Text></TouchableOpacity>
+              {/* <TouchableOpacity style={styles.btnSignUp} onPress={this.signUp}><Text style={styles.signUpText}>Đăng kí</Text></TouchableOpacity> */}
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
+              <TouchableOpacity onPress={this.signUp}>
+                <Text style={{ color: '#616161' }}>Đăng kí</Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#616161' }}>Quên mật khẩu?</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
     borderColor: '#F2A90F'
   },
   signUpText: {
-    color: '#F2A90F',
+    color: '#fff',
     textAlign: 'center',
   },
   btnLogin: {
@@ -177,19 +183,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#fff',
-    backgroundColor: '#fff'
+    borderColor: '#F2A90F',
+    backgroundColor: '#F2A90F'
   },
   loginText: {
-    color: '#F2A90F',
+    color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  logo: {
+    width: 250,
+    height: 250
+  },
+  contentLogo: {
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  gradient: {
+    height: 170,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30
   }
 })
 
 const mapDispatchToProps = dispatch => {
   return {
-    loginSucceeded: user => dispatch(userActions.loginSuccessed(user))
+    loginSucceeded: user => dispatch(userActions.loginSuccessed(user)),
+    onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken())
   }
 }
 

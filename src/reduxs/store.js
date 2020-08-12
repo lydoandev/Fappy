@@ -9,7 +9,7 @@ import { AsyncStorage } from 'react-native';
 const persistConfig = {
   key: 'rootTheBookApp',
   storage: AsyncStorage,
-  whitelist: ['authReducer'],
+  whitelist: ['authReducer', 'appReducer'],
   timeout: null,
 };
 

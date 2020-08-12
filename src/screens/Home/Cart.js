@@ -155,7 +155,7 @@ class Cart extends Component {
   }
 
   order = () => {
-    const { cart, idUser, orders, token } = this.props;
+    const { cart, idUser, orders, user } = this.props;
     const { items } = cart;
     const { totalPrice, time } = this.state;
 
@@ -167,7 +167,7 @@ class Cart extends Component {
     }, 0);
 
     var orderId = uuid.v4();
-    var order = { status: 'unConfirmed', orderId, userId: idUser, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, receiveTime: time, userDeviceToken: token };
+    var order = { status: 'unConfirmed', orderId, buyer: user, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, receiveTime: time };
     if (totalUnReceivedOrder < 2) {
       var refCart = firebase.database().ref('orders/' + orderId);
       refCart.set(order);
@@ -346,7 +346,8 @@ function mapStateToProps(state) {
     cart: state.productReducer.cart,
     orders: state.productReducer.orders,
     idUser: state.authReducer.user.id,
-    token: state.authReducer.token
+    token: state.authReducer.token,
+    user: state.authReducer.user
   };
 }
 
