@@ -47,10 +47,8 @@ function* logout() {
 }
 
 function* register(action) {
-  console.log('Action: ', action);
   try {
-    console.log('Data: ', data.data);
-    yield put({type: 'REGISTER_SUCCESS', payload: data.data});
+    yield put({type: 'REGISTER_SUCCESS', payload: action.payload});
     bottomTabs(data.data);
   } catch (e) {
     console.log('err: ', e.response.data.message);

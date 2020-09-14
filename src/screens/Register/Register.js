@@ -12,7 +12,9 @@ import {Navigation} from 'react-native-navigation';
 import {connect} from 'react-redux';
 import {register} from '../../redux/userRedux/action';
 import {AsyncStorage} from 'react-native';
+import * as userActions from '../../redux/userRedux/action'
 import database from '@react-native-firebase/database'
+import Loading from '../../components/Loading/Loading'
 
 let addUser = item => {
   database().ref('/users').push(item);
@@ -31,7 +33,8 @@ class Register extends Component {
       status:'Active',
       id:'',
       storeId:'',
-      errs:''
+      errs:'',
+      loading: false
     };
     Navigation.events().bindComponent(this);
   }
@@ -43,8 +46,11 @@ class Register extends Component {
       Navigation.dismissModal(componentId);
     }
   };
-  register = () => {
+  register = async() => {
     if(this.state.password == this.state.confPassword){
+      this.setState({
+        loading: true
+      })
       const userRef = database().ref('users')
       const key = userRef.push().key
       var fullName = this.state.lastName + " " + this.state.firstName;
@@ -60,18 +66,35 @@ class Register extends Component {
         id: key,
         storeId:'RES1'
       };
-      this.props.register(user);
-      addUser(user);
-      Alert.alert(
-        "Fappy",
-        "Đăng ký thành công"
-      );
+      await database().ref('/users').child(key).update(user).then((user) => {
+        this.props.register(user);
+        this.props.onUpdateDeviceToken();
+        this.setState({
+          loading: false
+        })
+      })
+      
       Navigation.dismissModal(this.props.componentId);
     }else{
       this.setState({errs: "Mật khẩu xác nhận không đúng"})
     }
   };
   render() {
+    const { isAuthenticated } = this.props;
+    const { loading } = this.state;
+
+    if (isAuthenticated) {
+      Navigation.setRoot({
+        root: {
+          sideMenu
+        }
+      })
+    }
+    if (loading) {
+      return (
+        <Loading></Loading>
+      )
+    }
     return (
       <ScrollView>
         <View style={styles.container}>
@@ -144,14 +167,16 @@ class Register extends Component {
 
 const mapStateToProps = state => {
   return {
-    users: state.users,
-    errs: state.users.errs,
+    isAuthenticated: state.userReducer.isAuthenticated,
+    users: state.userReducer.user,
+    errs: state.userReducer.errs,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     register: user => dispatch(register(user)),
+    onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken()),
   };
 };
 export default connect(
