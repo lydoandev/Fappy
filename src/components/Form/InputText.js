@@ -25,11 +25,12 @@ export default class InputText extends Component {
     this.props.getData(this.props.name, value);
   }
   render() {
-    const { icon } = this.props;
+    const { icon, placeholder } = this.props;
     return (
       <View>
         <Input
           style={styles.txtInput}
+          placeholder={placeholder}
           inputStyle={{ paddingHorizontal: 10, paddingVertical: 5, color: '#555555' }}
           secureTextEntry={this.props.pass}
           onChangeText={(text) => this.onChangeText(text)}

@@ -11,7 +11,6 @@ class LocalNotificationService {
         if (!notification?.data || Object.keys(notification?.data).length < 1) {
           return
         }
-        notification.userInteraction = true
         if(notification.userInteraction){
           onOpenNotification(notification);
         }
@@ -26,7 +25,7 @@ class LocalNotificationService {
 
   showNotification = (id, title, message, data = {}, options = {}) => {
   console.log("LocalNotificationService -> showNotification -> message", message)
-    
+
     PushNotification.localNotification({
       id: id,
       title: title || '',

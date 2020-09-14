@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Navigation } from 'react-native-navigation';
-import { sideMenu } from '../../config/bottomTabs';
 
 export default class SwiperSlider extends Component {
   constructor(props) {
@@ -17,11 +15,7 @@ export default class SwiperSlider extends Component {
 
   moveToHome = () => {
     this.props.getStarted();
-    Navigation.setRoot({
-      root: {
-        sideMenu,
-      },
-    });
+    this.props.moveToHome();
   };
 
   render() {
@@ -58,7 +52,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   styleTitle: {
-    margin: 15,
+    margin: 25,
     fontWeight: 'bold',
     fontSize: 20,
     fontFamily: 'SVN-ProximaNova',
@@ -90,5 +84,6 @@ const styles = StyleSheet.create({
   },
   styleImage: {
     height: 200,
+    marginTop: 50
   },
 });

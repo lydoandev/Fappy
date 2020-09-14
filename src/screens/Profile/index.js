@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import InputText from '../../components/Form/InputText'
 import * as userActions from '../../reduxs/authRedux/actions'
 import Title from '../../components/Form/Title'
-import firebase from 'react-native-firebase';
+import database from '@react-native-firebase/database';
 import Error from '../../components/Form/Error'
 
 class Profile extends Component {
@@ -42,7 +42,7 @@ class Profile extends Component {
         if (this.checkValidate() == 0) {
             console.log('Hello');
             
-            firebase.database().ref('users').child(user.id).update(user);
+            database().ref('users').child(user.id).update(user);
             this.props.loginSuccessed(user);
             this.onEdit();
         }

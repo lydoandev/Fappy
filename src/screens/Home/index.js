@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import firebase from 'react-native-firebase'
+import firebase from '@react-native-firebase/app'
 import { SearchBar } from 'react-native-elements'
 import { Text, View, SectionList, ScrollView, FlatList } from 'react-native'
 import ItemDish from '../../components/Home/ItemDish'
@@ -10,11 +10,16 @@ import { Navigation } from 'react-native-navigation'
 import Sliders from '../../components/Home/Sliders'
 import { connect } from 'react-redux'
 import * as productActions from '../../reduxs/productRedux/actions'
+import * as userActions from '../../reduxs/authRedux/actions'
 import Loading from "../../components/Home/Loading"
 import fetchData from '../../until/fetchData'
 import RestaurantItem from '../../components/Home/RestaurantItem'
 import IconCart from '../../components/Cart/IconCart'
 import showModal from '../../until/showModal'
+import { showModalCart } from '../../until/showModal'
+import getProductBySeller from '../../until/getProductBySeller'
+import _ from 'lodash'
+
 
 class Home extends Component {
 
@@ -31,13 +36,20 @@ class Home extends Component {
     }
 
     componentDidMount = async () => {
+        
+        const { restaurants, marketers } = this.props;
 
         this.props.fetchCart(this.props.user.id);
         this.props.fetchData();
+        this.props.updateDiviceToken();
 
-        setTimeout(() => this.setState({ loading: false }), 3000)
+        if (restaurants) {
+            this.sortSeller(restaurants)
+        }
+        setTimeout(() => this.setState({ loading: false }), 2000)
 
     }
+
 
     filterProduct = () => {
         const { products } = this.props;
@@ -106,7 +118,7 @@ class Home extends Component {
 
         const { cart } = this.props;
 
-        showModal(cart, "Cart", {
+        showModalCart(cart, "Cart", {
             visible: true,
             title: {
                 text: 'Danh sách giỏ hàng',
@@ -143,6 +155,22 @@ class Home extends Component {
         this.setState({ search });
     }
 
+    sortSeller = async (seller) => {
+
+        const newSeller = _.orderBy(seller, o => o.starRating);
+
+
+        await seller.sort(async (a, b) => {
+            var quantityProd1 = (await getProductBySeller(a.id));
+            var quantityProd2 = (await getProductBySeller(b.id));
+            return quantityProd1.localCompare(quantityProd2);
+        })
+        this.setState({
+            restaurants: seller
+        })
+        return seller
+    }
+
     render() {
         const images = [
             'https://chuphinhmonan.com/wp-content/uploads/2017/03/avalon-1.jpg',
@@ -165,6 +193,7 @@ class Home extends Component {
 
         const { restaurants, marketers } = this.props;
 
+
         const { isAuthenticated } = this.props;
         if (!isAuthenticated) {
             Navigation.dismissAllModals()
@@ -178,11 +207,11 @@ class Home extends Component {
             return <View />
         }
         let products = [];
-        
-        if(!loading) {
+
+        if (!loading) {
             products = this.filterProduct();
-            console.log('Indec product: ', products);
-            
+            console.log("state", this.state);
+
         }
         if (loading) {
             return (
@@ -270,7 +299,8 @@ function mapStateToProps(state) {
 const mapDispatchToProps = dispatch => {
     return {
         fetchCart: (userId) => dispatch(productActions.fetchCart(userId)),
-        fetchData: () => dispatch(productActions.fetchData())
+        fetchData: () => dispatch(productActions.fetchData()),
+        updateDiviceToken: () => dispatch(userActions.updateDeviceToken()),
     }
 }
 

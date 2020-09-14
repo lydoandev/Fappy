@@ -1,8 +1,8 @@
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 
 
 export default async function getProductBySeller(id) {
-    var refProducts = await firebase.database().ref("products").orderByChild('sellerId')
+    var refProducts = await database().ref("products").orderByChild('sellerId')
         .equalTo(id).once('value')
         .then(snapshot => {
             if (snapshot.val() != null) {

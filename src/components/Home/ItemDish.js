@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database'
 
 import {
   View,
@@ -37,7 +37,7 @@ export default class ItemDish extends Component {
     } else {
       nameRef = "marketers/" + sellerId;
     }
-    var ref = firebase.database().ref(nameRef)
+    var ref = database().ref(nameRef)
     ref.once('value').then(snapshot => {
         this.setState({
           sellerInfo: { ...snapshot.val(), id: snapshot.key }

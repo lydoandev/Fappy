@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FlatList, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
+import { FlatList, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native'
 import ItemCart from '../../components/Cart/ItemCart'
 import navigateTo from '../../until/navigateTo';
 import showModal from '../../until/showModal'
@@ -7,10 +7,12 @@ import DateTimePicker from 'react-native-datepicker';
 import { connect } from 'react-redux';
 import { Navigation } from 'react-native-navigation';
 import ModalNotification from '../../components/Home/ModalNotification';
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 import Loading from "../../components/Home/Loading"
 import uuid from 'react-native-uuid'
 import * as productActions from '../../reduxs/productRedux/actions'
+import EmptyCart from '../../components/Empty/EmptyCart'
+import moment from 'moment';
 
 
 class Cart extends Component {
@@ -18,6 +20,7 @@ class Cart extends Component {
     super(props);
     this.state = {
       askDelete: false,
+      loading: true,
       idBookDelete: '',
       deleteSuccess: false,
       successMess: '',
@@ -41,7 +44,7 @@ class Cart extends Component {
       } else {
         nameRef = "marketers/" + sellerId;
       }
-      var ref = firebase.database().ref(nameRef)
+      var ref = database().ref(nameRef)
       ref.once('value').then(snapshot => {
         this.setState({
           sellerInfo: { ...snapshot.val(), id: snapshot.key }
@@ -49,7 +52,7 @@ class Cart extends Component {
       });
       this.calTotalPrice();
     }
-    setTimeout(() => this.setState({ loading: false }), 3000)
+    setTimeout(() => this.setState({ loading: false }), 1500)
   }
 
   calTotalPrice = () => {
@@ -66,10 +69,10 @@ class Cart extends Component {
     const { idProdDelete, deleteAll } = this.state;
 
     if (deleteAll) {
-      var refCart = firebase.database().ref('carts').child(cart.id).remove();
+      var refCart = database().ref('carts').child(cart.id).remove();
       this.props.fetchCart(idUser);
     } else {
-      var refCart = firebase.database().ref('carts');
+      var refCart = database().ref('carts');
       refCart.orderByChild("userId")
         .equalTo(idUser).once('value')
         .then(snapshot => {
@@ -78,7 +81,7 @@ class Cart extends Component {
 
           items.splice(index, 1);
           if (items.length <= 0) {
-            firebase.database().ref('carts').child(cart.id).remove();
+            database().ref('carts').child(cart.id).remove();
           } else {
             refCart.child(cart.id).update({ items });
 
@@ -143,7 +146,7 @@ class Cart extends Component {
         const index = items.findIndex(item => item.id === productId);
         items[index].quantityOrdered = quantityOrdered;
 
-        firebase.database().ref('carts').child(cart.id).update({ items });
+        database().ref('carts').child(cart.id).update({ items });
         this.props.fetchCart(idUser);
         this.calTotalPrice();
       } else {
@@ -158,6 +161,7 @@ class Cart extends Component {
     const { cart, idUser, orders, user } = this.props;
     const { items } = cart;
     const { totalPrice, time } = this.state;
+    console.log('time: ', time)
 
     const totalUnReceivedOrder = orders.reduce((total, item) => {
       if (item.status == 'unConfirmed' || item.status == "confirmed") {
@@ -166,12 +170,16 @@ class Cart extends Component {
       return total
     }, 0);
 
+    const orderDate = moment().format();
+    
+
     var orderId = uuid.v4();
-    var order = { status: 'unConfirmed', orderId, buyer: user, seller: this.state.sellerInfo, items: items, orderDate: new Date(), totalPrice, receiveTime: time };
+    var order = { status: 'unConfirmed', orderId, buyer: user, seller: this.state.sellerInfo, items: items, orderDate, totalPrice, receiveTime: time };
+    
     if (totalUnReceivedOrder < 2) {
-      var refCart = firebase.database().ref('orders/' + orderId);
+      var refCart = database().ref('orders/' + orderId);
       refCart.set(order);
-      firebase.database().ref('carts').child(cart.id).remove();
+      database().ref('carts').child(cart.id).remove();
       this.props.fetchCart(idUser);
       this.props.fetchOrder(idUser);
       showModal({ orderId }, 'OrderDetail', {
@@ -211,20 +219,36 @@ class Cart extends Component {
     })
   }
 
+  convertDate = (dateStr) => {
+     // From mm-dd-yyyy to yyyy-mm-ddThh:MM:ssZ
+     var dArr = dateStr.split("-");
+     return dArr[2] + "-" + dArr[0] + "-" + dArr[1] + "T00:00:00"; //2017-09-13T00:13:28
+  }
+
   onChange = (timer) => {
     const { time } = this.state;
-    var finalTime = (time.getMonth() + 1) + '-' + time.getDate() + '-' + time.getFullYear() + ' ' + timer;
+    
+    var finalTime = moment(time).format('YYYY-MM-DD') + ' ' + timer + ':00';
+    console.log("final:  ",  finalTime)
+    const time2 = moment(finalTime, 'YYYY-MM-DD HH:mm:ss', true).format();
+    console.log('Time 1: ', time2);
+
     this.setState(prevState => ({
       ...prevState,
-      time: new Date(finalTime)
+      time: time2
     }))
   }
 
   render() {
     const { askDelete, deleteSuccess, successMess, error, askMess, sellerInfo, totalPrice, mode, time, loading } = this.state;
-
+    
+    if (loading) {
+      return (
+          <Loading color='#F2A90F' bkg='#fff'></Loading>
+      )
+  }
     if (!this.props.cart.items) {
-      return <></>;
+      return <EmptyCart />;
     }
     return (
       <>
@@ -275,12 +299,13 @@ class Cart extends Component {
           <View style={styles.time}>
             <Text style={[styles.txt, { flex: 1 }]}>Giờ đến nhận: </Text>
             <DateTimePicker
+              onDateChange={(time) => this.onChange(time)}
               testID="dateTimePicker"
-              date={time}
+              date={moment(time)}
               mode='time'
-              minDate={new Date()}
+              // minTime='13:45:34'
+              dateFormat='HH:mm:ss'
               is24Hour={true}
-              onDateChange={this.onChange}
             />
           </View>
           <View style={styles.totalPrice}>
@@ -298,6 +323,9 @@ class Cart extends Component {
 }
 
 const styles = StyleSheet.create({
+  content: {
+    width: '100%',
+  },
   btnOrder: {
     height: 45,
     justifyContent: "center",

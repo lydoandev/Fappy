@@ -12,6 +12,7 @@ class Order extends Component {
 
     componentDidMount() {
         this.props.fetchOrder(this.props.user.id);
+
     }
 
     navigateToOrderDetail = (orderId) => {

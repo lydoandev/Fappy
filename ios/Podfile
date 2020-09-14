@@ -34,8 +34,6 @@ target 'Fappy' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  pod 'RNFirebase', :path => '../node_modules/react-native-firebase'
-
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   pod 'RNDateTimePicker', :path => '../node_modules/@react-native-community/datetimepicker'
@@ -45,6 +43,8 @@ target 'Fappy' do
   pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
 
   pod 'BVLinearGradient', :path => '../node_modules/react-native-linear-gradient'
+
+  pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
 
   target 'FappyTests' do
     inherit! :search_paths

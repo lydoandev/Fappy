@@ -7,9 +7,9 @@ import {
 import Swiper from 'react-native-web-swiper';
 import ModalNotification from '../../components/Home/ModalNotification'
 import SwiperSlider from '../../components/Slide/SwiperSlider';
-import Slide1 from '../../assets/images/Slide1.jpg';
+import Slide1 from '../../assets/images/Slide1.png';
 import Slide2 from '../../assets/images/Slide2.png';
-import Slide3 from '../../assets/images/Slide3.jpeg';
+import Slide3 from '../../assets/images/Slide3.png';
 import * as userActions from '../../reduxs/authRedux/actions'
 import * as productActions from '../../reduxs/productRedux/actions'
 import * as appActions from '../../reduxs/appRedux/actions'
@@ -17,8 +17,9 @@ import { fcmService } from '../../config/notification/FCMService'
 import { localNotificationService } from '../../config/notification/LocalNotificationService'
 import { Dimensions } from 'react-native';
 import { connect } from 'react-redux';
-import { sideMenu } from '../../config/bottomTabs';
+// import { sideMenu } from '../../config/bottomTabs';
 import { Navigation } from 'react-native-navigation';
+import getSideMenu from '../../until/getSideMenu'
 
 const styles = StyleSheet.create({
   container: {
@@ -67,15 +68,21 @@ class Splash extends React.Component {
     return true
   }
 
+  moveToHome = async () => {
+    const sideMenu = await getSideMenu();
+      
+      Navigation.setRoot({
+        root: {
+          sideMenu
+        }
+      })
+  }
+
   isStarted = () => {
     const { isStarted } = this.props;
     console.log("Splash -> isStarted -> isStarted", isStarted)
     if (isStarted) {
-      Navigation.setRoot({
-        root: {
-          sideMenu,
-        },
-      });
+      this.moveToHome();
     }
   }
 
@@ -136,6 +143,7 @@ class Splash extends React.Component {
               sourceImage={Slide1}
               title="Món ăn ngon và giá hợp lí"
               description="Rất nhiều món ăn ngon, chất lượng và giá thành hợp túi tiền"
+              moveToHome={this.moveToHome}
             />
           </View>
           <View style={styles.slideContainer}>
@@ -144,6 +152,7 @@ class Splash extends React.Component {
               sourceImage={Slide2}
               title="Thêm vào giỏ và đặt món"
               description="Món ăn sẽ được giữ trong 30 phút. Hãy chắc chắn là bạn đến lấy kịp giờ"
+              moveToHome={this.moveToHome}
             />
           </View>
           <View style={styles.slideContainer}>
@@ -152,6 +161,7 @@ class Splash extends React.Component {
               sourceImage={Slide3}
               title="Tận hưởng món ăn"
               description="Chọn những món ăn, nguyên liệu yêu thích và tận hưởng cuốn món ăn mà mình yêu thích thôi nào."
+              moveToHome={this.moveToHome}
             />
           </View>
         </Swiper>

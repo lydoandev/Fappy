@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native"
 import InputText from '../../components/Form/InputText'
 import Title from '../../components/Form/Title'
@@ -17,12 +17,12 @@ class Register extends Component {
     super(props);
     this.state = {
       info: {
-        firstName: "Ly",
-        lastName: "Đoàn Thị",
-        email: "ly.dev@gmail.com",
-        phone: "0348543343",
-        password: "123456",
-        confirmPass: "123456"
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPass: ""
       },
       errors: {
         firstNameErr: "",
@@ -59,7 +59,7 @@ class Register extends Component {
     }));
     let result = false
     const { phone } = this.state.info
-    const userRef = firebase.database().ref('users')
+    const userRef = database().ref('users')
     await userRef.orderByChild('phone')
       .equalTo(phone).once('value')
       .then(snapshot => {
@@ -105,13 +105,6 @@ class Register extends Component {
       firstNameErr = "Tên là trường bắt buộc";
       countErr++;
     }
-    if (email == "") {
-      countErr++;
-      emailErr = "Email là trường bắt buộc";
-    } else if (!re.test(String(email).toLowerCase())) {
-      countErr++;
-      emailErr = "Email không đúng format";
-    }
     if (lastName == "") {
       lastNameErr = "Họ là trường bắt buộc"
       countErr++;
@@ -145,6 +138,8 @@ class Register extends Component {
         confirmPassErr
       }
     })
+    console.log("voo");
+    
 
     return countErr;
   }
@@ -155,11 +150,13 @@ class Register extends Component {
 
   signUp = async () => {
     var { firstName, phone, lastName, password } = this.state.info;
+    
     if (this.checkValidation() == 0) {
+      
       this.setState({ loading: true })
       if (!await this.checkPhoneExist()) {
 
-        const userRef = firebase.database().ref('users')
+        const userRef = database().ref('users')
         const key = userRef.push().key
         const user = {
           id: key,
@@ -168,7 +165,9 @@ class Register extends Component {
           fullName: lastName + ' ' + firstName,
           phone,
           password,
-          role: 'buyer',
+          role: 'Buyer',
+          deviceToken: '',
+          status: 'Active'
         }
         
         await userRef.child(key).update(user).then(() => {
@@ -204,7 +203,6 @@ class Register extends Component {
                 icon='user'
                 value={firstName}
                 getData={this.getData}
-                onSubmitEditing={() => this.refInput.getInnerRef().focus()}
                 returnKeyType="next"></InputText>
               <Error errorText={firstNameErr}></Error>
             </View>

@@ -5,7 +5,7 @@ import { Navigation } from "react-native-navigation"
 
 import LogIn from './Login'
 import Register from './Register'
-import { sideMenu } from '../../config/bottomTabs'
+import getSideMenu from '../../until/getSideMenu'
 
 class Auth extends Component {
     constructor(props) {
@@ -26,16 +26,24 @@ class Auth extends Component {
             isLogin: !prevState.isLogin
         }))
     }
+    moveToHome = async () => {
+        console.log("hello");
+        
+        const sideMenu = await getSideMenu();
+        console.log('Sidemenu: ', sideMenu);
+        
+        Navigation.setRoot({
+            root: {
+                sideMenu
+            }
+        })
+    }
     render() {
         const { isLogin, modalVisible } = this.state;
         const { isAuthenticated } = this.props.data;
         
         if (isAuthenticated) {
-            Navigation.setRoot({
-                root: {
-                    sideMenu
-                }
-            });
+            this.moveToHome();
             return <></>;
         }
         return (

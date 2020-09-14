@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 import { View, Text, ScrollView, SectionList, FlatList, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import { SearchBar } from 'react-native-elements';

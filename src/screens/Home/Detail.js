@@ -9,7 +9,8 @@ import TitleSection from '../../components/Home/TitleSection'
 import ModalNotification from '../../components/Home/ModalNotification'
 import navigateTo from '../../until/navigateTo'
 import showModal from '../../until/showModal'
-import firebase from 'react-native-firebase'
+import { showModalCart } from '../../until/showModal'
+import database from '@react-native-firebase/database';
 import moment from 'moment'
 import { connect } from 'react-redux'
 import * as productActions from '../../reduxs/productRedux/actions'
@@ -83,7 +84,7 @@ class Detail extends Component {
 
         const item = {...this.props.item, quantityOrdered: 1};
 
-        var refCart = firebase.database().ref('carts');
+        var refCart = database().ref('carts');
         refCart.orderByChild("userId")
             .equalTo(id).once('value')
             .then(snapshot => {
@@ -117,7 +118,7 @@ class Detail extends Component {
         this.setModalVisibleExistSeller();
         const { id } = this.props.user;
         const { keyCart } = this.state;
-        var refCart = firebase.database().ref('carts').child(keyCart).remove();
+        var refCart = database().ref('carts').child(keyCart).remove();
         this.addToCart();
     }
 
@@ -132,7 +133,7 @@ class Detail extends Component {
 
         const { cart } = this.props;
         this.completedAddToCart();
-        showModal(cart, "Cart", {
+        showModalCart(cart, "Cart", {
             visible: true,
             title: {
                 text: 'Danh sách giỏ hàng',

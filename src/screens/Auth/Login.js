@@ -7,7 +7,7 @@ import Title from '../../components/Form/Title'
 import Error from '../../components/Form/Error'
 import * as userActions from '../../reduxs/authRedux/actions'
 import * as appActions from '../../reduxs/appRedux/actions'
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 
 import Loading from '../../components/Home/Loading'
 
@@ -15,8 +15,8 @@ class LogIn extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      phone: "348543343",
-      password: "123456",
+      phone: "",
+      password: "",
       phoneErr: "",
       passwordErr: "",
     }
@@ -38,7 +38,7 @@ class LogIn extends Component {
     if (phone == "") {
       countErr++;
       phoneErr = "Số điện thoại là trường bắt buộc";
-    } else if (phone.length != 9) {
+    } else if (phone.length != 10) {
       countErr++;
       phoneErr = "Số điện thoại không đúng format";
     }
@@ -60,25 +60,17 @@ class LogIn extends Component {
   login = async () => {
     Keyboard.dismiss();
     const { phone, password } = this.state;
-    const userRef = firebase.database().ref('users');
+    const userRef = database().ref('users');
 
     if (this.checkValidation() == 0) {
       this.setState({ loading: true })
       await userRef.orderByChild('phone')
-        .equalTo("0" + phone).once('value')
+        .equalTo(phone).once('value')
         .then(snapshot => {
           if (snapshot.val()) {
             const user = Object.values(snapshot.val())[0];
             if (user?.password == password) {
               this.setState({ message: '' })
-              // firebase.database().ref('carts').orderByChild("userId")
-              //   .equalTo(user.id).once('value')
-              //   .then(snapshot => {
-              //     if (snapshot.val()) {
-              //       var { items, sellerId } = Object.values(snapshot.val())[0];
-              //       this.props.loginSucceeded(user, {cart: items, sellerId})
-              //     } else return {}
-              //   })
               this.props.loginSucceeded(user);
               this.props.onUpdateDeviceToken();
             } else {
@@ -127,7 +119,7 @@ class LogIn extends Component {
                 <Text>+84</Text>
               </View> */}
                 <View style={{ flex: 1 }}>
-                  <InputText name="phone" value={phone} getData={this.getData} icon='phone'></InputText>
+                  <InputText name="phone" value={phone} getData={this.getData} icon='phone' placehoder="0376768676"></InputText>
                 </View>
               </View>
               <Error errorText={phoneErr} />
@@ -142,10 +134,10 @@ class LogIn extends Component {
               {/* <TouchableOpacity style={styles.btnSignUp} onPress={this.signUp}><Text style={styles.signUpText}>Đăng kí</Text></TouchableOpacity> */}
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 20 }}>
+              <Text style={{ color: '#616161' }}>Quên mật khẩu?</Text>
               <TouchableOpacity onPress={this.signUp}>
                 <Text style={{ color: '#616161' }}>Đăng kí</Text>
               </TouchableOpacity>
-              <Text style={{ color: '#616161' }}>Quên mật khẩu?</Text>
             </View>
           </View>
         </View>

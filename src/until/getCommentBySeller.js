@@ -1,8 +1,8 @@
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 
 
 export default async function getCommentBySeller(id) {
-    var refComments = await firebase.database().ref("comments").orderByChild('sellerId')
+    var refComments = await database().ref("comments").orderByChild('sellerId')
         .equalTo(id).once('value')
         .then(snapshot => {
             if (snapshot.val() != null) {

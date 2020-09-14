@@ -4,7 +4,8 @@ import ItemNotification from '../../components/Notification/ItemNotification'
 import { connect } from 'react-redux'
 import * as productActions from '../../reduxs/productRedux/actions';
 import showModal from '../../until/showModal';
-import firebase from 'react-native-firebase'
+import EmptyNotifi from '../../components/Empty/EmptyNotifi'
+import database from '@react-native-firebase/database';
 
 class Notification extends Component {
     constructor(props){
@@ -16,8 +17,10 @@ class Notification extends Component {
 
     componentDidMount() {
         const { id } = this.props.user;
+        console.log('user: ', id)
         this.props.fetchNotification(id);
-        // setInterval(() => this.props.fetchNotification(id), 1000);
+        console.log(this.props.notifications);
+        setInterval(() => this.props.fetchNotification(id), 1000);
     }
 
     getNotification = (refreshing = false) => {
@@ -33,7 +36,7 @@ class Notification extends Component {
     openNotification = (item) => {
         const { order, id } = item;
         item.isSeen = true;
-        firebase.database().ref('notifications').child(id).update(item);
+        database().ref('notifications').child(id).update(item);
 
         showModal({ orderId: order.orderId }, 'OrderDetail', {
             title: {
@@ -51,7 +54,7 @@ class Notification extends Component {
         const { notifications} = this.props;
         notifications.map(item => {
             item.isSeen = true;
-            firebase.database().ref('notifications').child(item.id).update(item);
+            database().ref('notifications').child(item.id).update(item);
         });
         this.props.fetchNotification(this.props.user.id);
     }
@@ -59,8 +62,11 @@ class Notification extends Component {
     render() {
         const { notifications } = this.props;
         const { refreshing } = this.state;
+        if(notifications.length == 0) {
+            return <EmptyNotifi />
+        }
         return (
-            <ScrollView style={{ marginTop: 20, marginBottom: 40 }}
+            <ScrollView style={{ marginTop: 20, marginBottom: 20 }}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={() => this.getNotification(true)} />}
             >

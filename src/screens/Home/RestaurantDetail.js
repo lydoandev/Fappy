@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { View, Image, Text, TouchableOpacity, ScrollView } from 'react-native'
 import { StyleSheet } from 'react-native'
 import { Icon, ListItem } from 'react-native-elements'
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 import { connect } from 'react-redux'
 import ScrollableTabView, {
     ScrollableTabBar,
@@ -15,6 +15,8 @@ import navigateTo from '../../until/navigateTo'
 import getProductBySeller from '../../until/getProductBySeller'
 import getCommentBySeller from '../../until/getCommentBySeller'
 import CommentForm from '../../components/Home/CommentForm'
+import EmptyDish from '../../components/Empty/EmptyDish'
+import EmptyComment from '../../components/Empty/EmptyComment'
 
 class RestaurantDetail extends Component {
     constructor(props) {
@@ -97,7 +99,7 @@ class RestaurantDetail extends Component {
     }
 
     updateComment = async (comment) => {
-        await firebase.database().ref("comments").child(comment.id).update(comment);
+        await database().ref("comments").child(comment.id).update(comment);
         this.openCommentForm();
         this.getCommentsOfRestaurant();
     }
@@ -144,10 +146,12 @@ class RestaurantDetail extends Component {
                         >
                             <View tabLabel="MÓN ĂN" style={{ margin: 5, fontSize: 25, flex: 1 }}>
                                 {/* <TitleSection type="MÓN ĂN" data={products} navigateToSeeAll={this.navigateToSeeAll}></TitleSection> */}
-                                <ListDish flex='row' horizontal={false} data={products} navigateToDetail={this.navigateToDetail}></ListDish>
+                                {products.length == 0 ? <EmptyDish /> : (
+                                    <ListDish flex='row' horizontal={false} data={products} navigateToDetail={this.navigateToDetail}></ListDish>
+                                )}
                             </View>
                             <View tabLabel="ĐÁNH GIÁ" style={{ fontSize: 25, flex: 1 }}>
-                                {comments && comments.map(item => (
+                                {!comments ? <EmptyComment /> : comments.map(item => (
                                     <>
                                         <ListItem
                                             containerStyle={{ width: "100%" }}

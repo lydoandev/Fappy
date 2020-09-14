@@ -1,3 +1,10 @@
+import Icon from 'react-native-vector-icons/AntDesign'
+
+const getIcon = async (name, size) => {
+    const source = await Icon.getImageSource(name, size)
+    return source
+}
+
 export const sideMenu = {
     left: {
         component: {
@@ -35,7 +42,7 @@ export const sideMenu = {
                                                 component: {
                                                     name: 'SideBar',
                                                 },
-                                                icon: require('../assets/icons/icon_menu.png'),
+                                                icon: {uri: "file:///data/data/com.fappy/cache/-1aabu5t_25@2x.png", scale: 2},
                                             },
                                         },
                                         bottomTab: {

@@ -6,11 +6,12 @@ import uuid from 'react-native-uuid'
 import { Navigation } from 'react-native-navigation';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 import ReviewOrderItem from '../../components/Home/ReviewOrderItem';
-import firebase from 'react-native-firebase';
+import database from '@react-native-firebase/database';
 import { getDistance, getPreciseDistance } from 'geolib';
 import getCommentBySeller from '../../until/getCommentBySeller'
 import Geolocation from 'react-native-geolocation-service'
 import CommentForm from '../../components/Home/CommentForm';
+import moment from 'moment'
 // Geolocation.setRNConfiguration({ authorizationLevel: 'whenInUse', skipPermissionRequests: false, });
 
 class OrderDetail extends Component {
@@ -42,7 +43,7 @@ class OrderDetail extends Component {
     }
 
     getComment = async() => {
-        var comment = await firebase.database().ref("comments").orderByChild('buyer/id')
+        var comment = await database().ref("comments").orderByChild('buyer/id')
         .equalTo(this.props.user.id).once('value')
         .then(snapshot => {
             if (snapshot.val() != null) {
@@ -91,7 +92,7 @@ class OrderDetail extends Component {
             refreshing
         })
         var order;
-        await firebase.database().ref("orders/" + orderId).once("value").then(snapshot => {
+        await database().ref("orders/" + orderId).once("value").then(snapshot => {
             order = snapshot.val();
             this.setState({
                 order,
@@ -128,14 +129,15 @@ class OrderDetail extends Component {
     cancelOrder = async () => {
         var order = this.state.order;
         order.status = 'canceled'
-        await firebase.database().ref('orders').child(order.orderId).update(order);
+        await database().ref('orders').child(order.orderId).update(order);
         this.getOrder();
+        this.props.fetchOrder(this.props.user.id)
     }
 
     getTime = () => {
         const { receiveTime } = this.state.order;
-        var time = new Date(receiveTime);
-        return time.getHours() + ':' + time.getMinutes();
+        var time = moment(receiveTime).format('HH:mm:ss');
+        return time;
     }
 
     openCommentForm = () => {
@@ -153,12 +155,12 @@ class OrderDetail extends Component {
             comment,
             id: commentId
         }
-        firebase.database().ref('comments/' + commentId).set(comment);
+        database().ref('comments/' + commentId).set(comment);
         this.openCommentForm();
     }
 
     updateComment = async (comment) => {
-        await firebase.database().ref("comments").child(comment.id).update(comment);
+        await database().ref("comments").child(comment.id).update(comment);
         this.openCommentForm();
         this.getComment();
     }
@@ -445,4 +447,10 @@ function mapStateToProps(state) {
     };
 }
 
-export default connect(mapStateToProps, null)(OrderDetail);
+function mapDispatchToProps(dispatch) {
+    return {
+      fetchOrder: (userId) => dispatch(productActions.fetchOrder(userId))
+    };
+  }
+
+export default connect(mapStateToProps, mapDispatchToProps)(OrderDetail);

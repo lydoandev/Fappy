@@ -1,7 +1,7 @@
 
 import { put, takeLatest, call } from 'redux-saga/effects';
 import * as actions from './actions';
-import firebase from 'react-native-firebase'
+import database from '@react-native-firebase/database';
 import { store } from '../store'
 
 export function* fetchData() {
@@ -10,20 +10,29 @@ export function* fetchData() {
   var marketers = [];
   var orders = [];
   try {
-    yield firebase.database().ref('restaurants')
+    yield database().ref('restaurants')
       .on('child_added', snapshot => {
         restaurants.push({...snapshot.val(), id: snapshot.key})
       })
-
-      yield firebase.database().ref('products')
+      yield database().ref('products')
       .on('child_added', snapshot => {
         products.push({...snapshot.val(), id: snapshot.key})
       })
 
-      yield firebase.database().ref('marketers')
+      yield database().ref('marketers')
       .on('child_added', snapshot => {
         marketers.push({...snapshot.val(), id: snapshot.key})
       })
+    
+    restaurants.sort((a, b) => {
+      var quantityProd1 = getProductBySeller(a.id);
+      console.log("quantityProd1", quantityProd1);
+      var quantityProd2 = getProductBySeller(b.id);
+      console.log("quantityProd2", quantityProd2);
+      if(quantityProd1 > quantityProd2) return 1;
+      return -1;
+    })
+    console.log('Res affter: ', restaurants);
     yield put({ type: actions.FETCH_DATA_SUCCESS, payload: {restaurants, marketers, products}});
 
   } catch (error) {
@@ -34,11 +43,11 @@ export function* fetchData() {
 export function* fetchCart(action) {
 
   try {
-    var cart = yield firebase.database().ref('carts').orderByChild("userId")
+    var cart = yield database().ref('carts').orderByChild("userId")
       .equalTo(action.payload).once('value')
       .then(snapshot => {
         if (snapshot.val()) {
-          var id = Object.keys(snapshot.val());
+          var id = Object.keys(snapshot.val())[0];
           var { items, sellerId } = Object.values(snapshot.val())[0];
           return { id, items, sellerId }
         } else return {}
@@ -54,7 +63,7 @@ export function* fetchCart(action) {
 export function* fetchOrder(action) {
   try {
     const { user } = store.getState().authReducer;
-    var orders = yield firebase.database().ref('orders').orderByChild("buyer/id")
+    var orders = yield database().ref('orders').orderByChild("buyer/id")
       .equalTo(user.id).once('value')
       .then(snapshot => {
         if (snapshot.val()) {
@@ -80,7 +89,7 @@ export function* fetchOrder(action) {
 
 export function* fetchNotification(action) {
   try {
-    var notifications = yield firebase.database().ref('notifications').orderByChild("userId")
+    var notifications = yield database().ref('notifications').orderByChild("userId")
       .equalTo(action.payload).once('value')
       .then(snapshot => {
         if (snapshot.val()) {

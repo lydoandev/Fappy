@@ -4,19 +4,20 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.imagepicker.ImagePickerPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 // import com.reactnativecommunity.geolocation.GeolocationPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
-import io.invertase.firebase.RNFirebasePackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import io.invertase.firebase.database.RNFirebaseDatabasePackage;
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingPackage;
+import io.invertase.firebase.database.ReactNativeFirebaseDatabasePackage;
 import io.invertase.firebase.app.ReactNativeFirebaseAppPackage;
+import io.invertase.firebase.storage.ReactNativeFirebaseStoragePackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 
 import com.reactnativecommunity.viewpager.RNCViewPagerPackage;
@@ -51,15 +52,17 @@ public class MainApplication extends NavigationApplication {
        // Add additional packages you require here
        // No need to add RnnPackage and MainReactPackage
        return Arrays.<ReactPackage>asList(
-          new RNFirebasePackage(),
-          new RNFirebaseDatabasePackage(),
           new RNCViewPagerPackage(),
           new RNFusedLocationPackage(),
           new MapsPackage(),
+          new VectorIconsPackage(),
           new ReactNativeFirebaseAppPackage(),
           new ReactNativeFirebaseMessagingPackage(),
           new ReactNativePushNotificationPackage(),
-          new LinearGradientPackage()
+          new LinearGradientPackage(),
+          new ReactNativeFirebaseDatabasePackage(),
+          new ImagePickerPackage(),
+          new ReactNativeFirebaseStoragePackage()
        );
    }
 

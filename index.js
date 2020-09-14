@@ -15,10 +15,10 @@ import RestaurantDetail from './src/screens/Home/RestaurantDetail'
 import MarketerDetail from './src/screens/Home/MarketerDetail'
 import Auth from './src/screens/Auth'
 import Cart from './src/screens/Home/Cart'
-import ConfirmBeforeOrder from './src/screens/Home/ConfirmBeforeOrder'
 import OrderDetail from './src/screens/Order/OrderDetail'
 import Search from './src/screens/Home/SearchScreen'
 import Splash from './src/screens/Splash'
+import UploadFile from './src/screens/Splash/UploadFile'
 
 console.disableYellowBox = true;
 
@@ -34,12 +34,12 @@ Navigation.registerComponent("RestaurantDetail", () => ReducerComponent(Restaura
 Navigation.registerComponent("MarketerDetail", () => ReducerComponent(MarketerDetail), () => MarketerDetail)
 Navigation.registerComponent("Auth", () => ReducerComponent(Auth), () => Auth)
 Navigation.registerComponent("Cart", () => ReducerComponent(Cart), () => Cart)
-Navigation.registerComponent("ConfirmBeforeOrder", () => ReducerComponent(ConfirmBeforeOrder), () => ConfirmBeforeOrder)
 Navigation.registerComponent("OrderDetail", () => ReducerComponent(OrderDetail), () => OrderDetail)
 Navigation.registerComponent("Search", () => ReducerComponent(Search), () => Search)
 Navigation.registerComponent("Splash", () => ReducerComponent(Splash), () => Splash)
 
 Navigation.registerComponent("SideBar", () => ReducerComponent(SideBar), () => SideBar)
+Navigation.registerComponent("UploadFile", () => ReducerComponent(UploadFile), () => UploadFile)
 
 
 function ReducerComponent(Component) {
@@ -59,7 +59,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 Navigation.setRoot({
   root: {
     component: {
-      name: 'Splash'
+      name: 'UploadFile'
     }
   }
 });

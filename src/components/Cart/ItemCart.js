@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StarIcon from '../Home/StarIcon';
-import firebase from 'react-native-firebase'
 import navigateTo from '../../until/navigateTo'
 
 export default class ItemCart extends Component {
