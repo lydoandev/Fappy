@@ -8,7 +8,7 @@ import {createLogger} from 'redux-logger';
 
 const sagaMiddleware = createSagaMiddleware();
 const store = createStore(
-  combineReducers({users: userReducer, appReducer: appReducer}),
+  combineReducers({userReducer, appReducer}),
   applyMiddleware(sagaMiddleware, createLogger()),
 );
 

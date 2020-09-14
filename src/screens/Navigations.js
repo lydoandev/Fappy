@@ -32,7 +32,7 @@ export const registerNav = () => {
     () => Loading,
   );
 
-  Navigation.registerComponent('MainScreen', () => MainScreen);
+  Navigation.registerComponent('MainScreen', () => ReduxProvider(MainScreen), () => MainScreen);
   Navigation.registerComponent('AddProd', () => AddProd);
   Navigation.registerComponent('Detail', () => Detail);
   Navigation.registerComponent('OrderList', () => OrderList);

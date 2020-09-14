@@ -13,11 +13,12 @@ import * as userActions from '../../redux/userRedux/action'
 import * as appActions from '../../redux/appRedux/actions'
 import { Dimensions } from 'react-native';
 import { connect } from 'react-redux';
-import {FCMService} from '../../FCMService'
-import {LocalNotificationService} from '../../LocalNotificationService'
+import {fcmService} from '../../FCMService'
+import {localNotificationService} from '../../LocalNotificationService'
 // import { sideMenu } from '../../config/bottomTabs';
 import { Navigation } from 'react-native-navigation';
 import bottomTabs from '../Navigations'
+import { sideMenu } from '../../config/bottomTab'
 
 const styles = StyleSheet.create({
   container: {
@@ -42,9 +43,9 @@ class Splash extends React.Component {
 
   componentDidMount = async () => {
     // Register FCM Service
-    FCMService.register(this.onRegister, this.onNotification, this.onOpenNotification)
+    fcmService.register(this.onRegister, this.onNotification, this.onOpenNotification)
     // Configure notification options
-    LocalNotificationService.configure(this.onOpenNotification)
+    localNotificationService.configure(this.onOpenNotification)
 
     // Check permission: true/false
     this.isStarted();
@@ -54,9 +55,7 @@ class Splash extends React.Component {
     // bottomTabs()
     Navigation.setRoot({
       root: {
-        component: {
-          name: 'Login',
-        },
+        sideMenu
       },
     });
   }

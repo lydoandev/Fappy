@@ -1,18 +1,31 @@
-import React, {Component} from 'react';
-import {FlatList, ScrollView, View} from 'react-native';
-import {Navigation} from 'react-native-navigation';
+import React, { Component } from 'react';
+import { FlatList, ScrollView, View, StyleSheet, Text, Dimensions } from 'react-native';
+import { Navigation } from 'react-native-navigation';
+import { connect } from 'react-redux'
 import VerticalBarGraph from '@chartiful/react-native-vertical-bar-graph'
 import Pie from 'react-native-pie'
 
-export default class MainScreen extends Component {
+class MainScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: [],
-      status:''
+      status: ''
     };
   }
   render() {
+    const { isAuthenticated } = this.props;
+    console.log(isAuthenticated);
+
+    if (!isAuthenticated) {
+      Navigation.setRoot({
+        root: {
+          component: {
+            name: 'Login'
+          }
+        }
+      })
+    }
     return (
       <View>
         <View style={styles.title}>
@@ -46,56 +59,74 @@ export default class MainScreen extends Component {
           <Text style={styles.titletxt}>Thống kê theo đơn hàng</Text>
         </View>
         <View
-            style={{
-              paddingVertical: 15,
-              flexDirection: 'row',
-              width: 350,
-              justifyContent: 'space-between',
-            }}
-          >
-            <Pie
-              radius={80}
-              sections={[
-                {
-                  percentage: 10,
-                  color: '#C70039',
-                },
-                {
-                  percentage: 20,
-                  color: '#44CD40',
-                },
-                {
-                  percentage: 30,
-                  color: '#404FCD',
-                },
-                {
-                  percentage: 40,
-                  color: '#EBD22F',
-                },
-              ]}
-              strokeCap={'butt'}
-            />
-          </View>
+          style={{
+            paddingVertical: 15,
+            flexDirection: 'row',
+            width: 350,
+            justifyContent: 'space-between',
+          }}
+        >
+          <Pie
+            radius={80}
+            sections={[
+              {
+                percentage: 10,
+                color: '#C70039',
+              },
+              {
+                percentage: 20,
+                color: '#44CD40',
+              },
+              {
+                percentage: 30,
+                color: '#404FCD',
+              },
+              {
+                percentage: 40,
+                color: '#EBD22F',
+              },
+            ]}
+            strokeCap={'butt'}
+          />
+        </View>
       </View>
-      
-      
+
+
     );
   }
 }
 
+
+
 const styles = StyleSheet.create({
-  title:{
+  title: {
     backgroundColor: '#DAA520',
     paddingHorizontal: 10,
     paddingVertical: 10,
-    flex: 1, 
+    flex: 1,
     flexDirection: 'row'
   },
-  titletxt:{
+  titletxt: {
     color: '#fff',
     fontWeight: "bold",
     fontSize: 15,
     width: "90%"
   },
 })
+
+const mapStateToProps = state => {
+  return {
+    users: state.userReducer.users,
+    isAuthenticated: state.userReducer.isAuthenticated
+  };
+};
+const mapDispatchToProps = dispatch => {
+  return {
+    logout: user => dispatch(logout(user)),
+  };
+};
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(MainScreen);
 

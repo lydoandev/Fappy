@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Text, View } from 'react-native'
 import { fcmService } from '../FCMService'
+import { Navigation } from 'react-native-navigation';
 import { localNotificationService } from '../LocalNotificationService'
 
 export default class SplashScreen extends Component {

@@ -13,6 +13,8 @@ import com.reactnativenavigation.NavigationApplication;
 import com.reactnativenavigation.react.NavigationReactNativeHost;
 import com.reactnativenavigation.react.ReactGateway;
 
+import com.horcrux.svg.SvgPackage;
+
 // Firebase
 import io.invertase.firebase.app.ReactNativeFirebaseAppPackage;
 import io.invertase.firebase.auth.ReactNativeFirebaseAuthPackage;
@@ -47,7 +49,8 @@ public class MainApplication extends NavigationApplication {
       new ReactNativeFirebaseAuthPackage(),
       new ReactNativeFirebaseDatabasePackage(),
       new ReactNativeFirebaseMessagingPackage(),
-      new ReactNativePushNotificationPackage()
+      new ReactNativePushNotificationPackage(),
+      new SvgPackage()
     );
   }
 

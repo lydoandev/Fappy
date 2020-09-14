@@ -1,7 +1,8 @@
-import * as Type from "../appRedux/actions"
+import * as Type from "./action"
 const initialState = {
   users: [],
   errs: [],
+  isAuthenticated: false
 };
 
 export const userReducer = (state = initialState, action) => {
@@ -10,7 +11,7 @@ export const userReducer = (state = initialState, action) => {
       return {...state, users: action.payload};
 
     case 'LOGIN_SUCCESS':
-      return {...state, users: action.payload};
+      return {...state, users: action.payload, isAuthenticated: true};
 
     case 'LOGIN_FAILURE':
       return {...state, errs: action.payload};

@@ -78,6 +78,8 @@ class SideMenu extends Component {
     })
   }
   render() {
+    console.log('props: ', this.props);
+    
     return (
       <ScrollView style={{backgroundColor: "#ffffff"}}>
         <ImageBackground
@@ -104,15 +106,15 @@ class SideMenu extends Component {
               </View> 
               <View style={styles.field}>
                 <Text>Họ và tên: </Text>
-                <Text>{this.state.userInfo.fullName}</Text>
+                <Text>{this.state.userInfo?.fullName}</Text>
               </View>
               <View style={styles.field}>
                 <Text>Số điện thoại: </Text>
-                <Text>{this.state.userInfo.phone}</Text>
+                <Text>{this.state.userInfo?.phone}</Text>
               </View>
               <View style={styles.field}>
                 <Text>Email: </Text>
-                <Text>{this.state.userInfo.email}</Text>
+                <Text>{this.state.userInfo?.email}</Text>
               </View>
             </View>
             
@@ -165,7 +167,7 @@ class SideMenu extends Component {
 
 const mapStateToProps = state => {
   return {
-    users: state.users,
+    users: state.userReducer.users,
   };
 };
 const mapDispatchToProps = dispatch => {
