@@ -59,7 +59,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 Navigation.setRoot({
   root: {
     component: {
-      name: 'UploadFile'
+      name: 'Splash'
     }
   }
 });
