@@ -17,8 +17,8 @@ import {fcmService} from '../../FCMService'
 import {localNotificationService} from '../../LocalNotificationService'
 // import { sideMenu } from '../../config/bottomTabs';
 import { Navigation } from 'react-native-navigation';
-import bottomTabs from '../Navigations'
 import { sideMenu } from '../../config/bottomTab'
+import { fetchOrders } from '../../redux/orderRedux/actions';
 
 const styles = StyleSheet.create({
   container: {
@@ -52,7 +52,6 @@ class Splash extends React.Component {
   }
 
   moveToHome = async () => {
-    // bottomTabs()
     Navigation.setRoot({
       root: {
         sideMenu
@@ -74,9 +73,11 @@ class Splash extends React.Component {
     this.props.onUpdateDeviceToken(token);
   }
   onNotification = (notify) => {
+    console.log('on noti: ', notify)
     const options = {
       playSound: false
     }
+    this.props.fetchOrder();
     localNotificationService.showNotification(
       0,
       notify.title,
@@ -84,9 +85,6 @@ class Splash extends React.Component {
       notify,
       options
     )
-
-    const { id } = this.props.user;
-    this.props.fetchOrder(id);
   }
 
   onOpenNotification = (notification) => {
@@ -114,8 +112,8 @@ class Splash extends React.Component {
             <SwiperSlider
               getStarted={this.props.getStarted}
               sourceImage={Slide1}
-              title="Món ăn ngon và giá hợp lí"
-              description="Rất nhiều món ăn ngon, chất lượng và giá thành hợp túi tiền"
+              title="Bán hoặc cho đi"
+              description="Thu lại vốn hoặc cho chúng cho những ngừoi cần nó."
               moveToHome={this.moveToHome}
             />
           </View>
@@ -123,8 +121,8 @@ class Splash extends React.Component {
             <SwiperSlider
               getStarted={this.props.getStarted}
               sourceImage={Slide2}
-              title="Thêm vào giỏ và đặt món"
-              description="Món ăn sẽ được giữ trong 30 phút. Hãy chắc chắn là bạn đến lấy kịp giờ"
+              title="Quản lí các đơn hàng một cách thuận lợi"
+              description="Theo dõi đơn hàng thuận tiện."
               moveToHome={this.moveToHome}
             />
           </View>
@@ -132,8 +130,8 @@ class Splash extends React.Component {
             <SwiperSlider
               getStarted={this.props.getStarted}
               sourceImage={Slide3}
-              title="Tận hưởng món ăn"
-              description="Chọn những món ăn, nguyên liệu yêu thích và tận hưởng cuốn món ăn mà mình yêu thích thôi nào."
+              title="Thống kê doanh thu"
+              description="Thống kê doanh thu hàng tháng một cách thuận lợi"
               moveToHome={this.moveToHome}
             />
           </View>
@@ -160,6 +158,7 @@ const mapDispatchToProps = dispatch => {
     onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken()),
     getStarted: () => dispatch(appActions.getStarted()),
     onChangeDeviceToken: (token) => dispatch(appActions.changeDiviceToken(token)),
+    onFetchOrders: () => dispatch(fetchOrders())
   }
 }
 

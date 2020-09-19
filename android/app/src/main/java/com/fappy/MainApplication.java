@@ -2,24 +2,27 @@ package com.fappy;
 
 import android.app.Application;
 import android.content.Context;
+import com.imagepicker.ImagePickerPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
+import com.oblador.vectoricons.VectorIconsPackage;
 
 import com.reactnativenavigation.NavigationApplication;
 import com.reactnativenavigation.react.NavigationReactNativeHost;
 import com.reactnativenavigation.react.ReactGateway;
 
+
 import com.horcrux.svg.SvgPackage;
 
 // Firebase
 import io.invertase.firebase.app.ReactNativeFirebaseAppPackage;
-import io.invertase.firebase.auth.ReactNativeFirebaseAuthPackage;
 import io.invertase.firebase.database.ReactNativeFirebaseDatabasePackage;
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingPackage;
+import io.invertase.firebase.storage.ReactNativeFirebaseStoragePackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 
 import java.util.Arrays;
@@ -46,11 +49,13 @@ public class MainApplication extends NavigationApplication {
   protected List<ReactPackage> getPackages() {
     return Arrays.<ReactPackage>asList(
       new ReactNativeFirebaseAppPackage(),
-      new ReactNativeFirebaseAuthPackage(),
       new ReactNativeFirebaseDatabasePackage(),
       new ReactNativeFirebaseMessagingPackage(),
       new ReactNativePushNotificationPackage(),
-      new SvgPackage()
+      new SvgPackage(),
+      new ReactNativeFirebaseStoragePackage(),
+      new ImagePickerPackage(),
+      new VectorIconsPackage()
     );
   }
 

@@ -4,13 +4,12 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
   TextInput,
   TouchableOpacity,
   Alert
 } from "react-native"
-import { showModal } from '../Navigations';
+import showModal from '../../until/showModal'
 import database from '@react-native-firebase/database'
 import { connect } from 'react-redux';
 import bottomTabs from '../Navigations';
@@ -25,37 +24,69 @@ class Login extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: 'vanle@gmail.com',
-      password: '123456',
+      email: 'vaaanle@gmail.com',
+      password: '12345678',
+      emailError: '',
+      passwordError: '',
       loading: false
     };
   }
+
+  isValidated = () => {
+    let isValid = true
+    let { email, password, emailError, passwordError } = this.state
+
+    emailError = ''
+    passwordError = ''
+
+    const emailRgx = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    if (!email) {
+      emailError = 'Email là trường bắt buộc'
+      isValid = false
+    } else if (!emailRgx.test(email.toLowerCase())) {
+      emailError = 'Email không hợp lệ'
+      isValid = false
+    }
+
+    if (!password) {
+      passwordError = 'Password là trường bắt buộc'
+      isValid = false
+    }
+
+    this.setState({ emailError, passwordError })
+
+    return isValid
+  }
+
   login = async () => {
-    const { email, password } = this.state;
-    console.log('Hiha');
-    this.setState({ loading: true })
-    const userRef = database().ref('users');
-    await userRef.orderByChild('email')
-      .equalTo(email).once('value')
-      .then(snapshot => {
-        if (snapshot.val()) {
-          const user = Object.values(snapshot.val())[0];
-          console.log('User: ', user);
+    if (this.isValidated()) {
+      console.log("Login -> login -> this.isValidated()", this.isValidated())
+      const { email, password } = this.state;
+      this.setState({ loading: true })
+      const userRef = database().ref('users');
+      await userRef.orderByChild('email')
+        .equalTo(email).once('value')
+        .then(snapshot => {
+          if (snapshot.val()) {
+            const user = Object.values(snapshot.val())[0];
+            console.log('User: ', user);
 
-          if (user?.password == password) {
-            AsyncStorage.setItem('user', JSON.stringify(user));
-            this.setState({ message: '' })
-            this.props.login(user);
-            this.props.onUpdateDeviceToken();
+            if (user?.password == password) {
+              this.setState({ message: '' });
+              console.log('on login: ', user);
+              
+              this.props.login(user);
+              this.props.onUpdateDeviceToken();
+            } else {
+              this.setState({ passwordError: 'Mật khẩu không đúng' })
+            }
           } else {
-            this.setState({ message: 'Tên tài khoản hoặc mật khẩu không đúng' })
+            this.setState({ emailError: 'Tên tài khoản không tồn tại' })
           }
-        } else {
-          this.setState({ message: 'Tên tài khoản không tồn tại' })
-        }
-        this.setState({ loading: false })
-      })
-
+          this.setState({ loading: false })
+        })
+    }
   };
   alert(message) {
     Alert.alert(
@@ -76,11 +107,11 @@ class Login extends Component {
     );
   }
   register = () => {
-    showModal('Register');
+    showModal({},'Register');
   };
   render() {
     const { isAuthenticated } = this.props;
-    const { loading } = this.state;
+    const { loading, emailError, passwordError } = this.state;
 
     if (isAuthenticated) {
       Navigation.setRoot({
@@ -108,6 +139,7 @@ class Login extends Component {
               onChangeText={text => this.setState({ email: text })}
               value={this.state.email}
             />
+            <Text style={styles.errorMessage}>{emailError || ""}</Text>
             <TextInput
               style={styles.input}
               secureTextEntry={true}
@@ -115,6 +147,7 @@ class Login extends Component {
               onChangeText={text => this.setState({ password: text })}
               value={this.state.password}
             />
+            <Text style={styles.errorMessage}>{passwordError || ""}</Text>
             <View style={styles.errs}>
               <Text style={{ color: '#FFA07A' }}>{this.props.errs}</Text>
             </View>
@@ -143,7 +176,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    login: user => dispatch(login(user)),
+    login: user => dispatch(userActions.login(user)),
     onUpdateDeviceToken: () => dispatch(userActions.updateDeviceToken()),
   };
 };
@@ -222,5 +255,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#DAA520',
     fontSize: 15,
+  },
+  errorMessage: {
+    color: 'red'
   }
 })

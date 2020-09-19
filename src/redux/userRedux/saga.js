@@ -1,44 +1,35 @@
-import {put, takeLatest} from 'redux-saga/effects';
-import {AsyncStorage} from 'react-native';
+import { put, takeLatest } from 'redux-saga/effects';
+import { AsyncStorage } from 'react-native';
 import bottomTabs from '../../screens/Navigations';
 
-import store  from '../store'
-import * as actions from './action'
+import store from '../store'
 import database from '@react-native-firebase/database'
 
 export function* updateDeviceToken(action) {
-  console.log('Saga user: ', user);
-
-    try {
-      const { deviceToken }  = store.getState().appReducer;
-      var user = store.getState().userReducer.users;
-      if(deviceToken && Object.keys(user).length > 0 && user?.deviceToken != deviceToken) {
-        user = {
-          ...user,
-          deviceToken
-        }
-        
-        yield database().ref('users').child(user.id).update(user);
+  try {
+    const { deviceToken } = store.getState().appReducer;
+    var user = store.getState().userReducer.users;
+    console.log('Saga user: ', user);
+    if (deviceToken && user?.deviceToken != deviceToken&& Object.keys(user).length > 0) {
+      user = {
+        ...user,
+        deviceToken
       }
-     
-      
-      yield put({ type: "UPDATE_DEVICE_TOKEN_SUCCESSED", payload: user });
-  
-    } catch (error) {
-      console.log('Error: ', error);
+      yield database().ref('users').child(user.id).update(user);
     }
+    yield put({ type: "UPDATE_DEVICE_TOKEN_SUCCESSED", payload: user });
+  } catch (error) {
+    console.log("function*updateDeviceToken -> error", error)
+  }
 }
 
 function* login(action) {
   console.log('Hello');
-  
+
   try {
-    yield put({type: 'LOGIN_SUCCESS', payload: action.payload});
-    yield AsyncStorage.setItem('latestUser', action.payload.token);
-    console.log('Token in Saga =>', action.payload.token);
-    bottomTabs();
+    yield put({ type: 'LOGIN_SUCCESS', payload: action.payload });
   } catch (e) {
-    yield put({type: 'LOGIN_FAILURE', payload: e.response.data.message});
+    yield put({ type: 'LOGIN_FAILURE', payload: e.response.data.message });
   }
 }
 function* logout() {
@@ -48,11 +39,12 @@ function* logout() {
 
 function* register(action) {
   try {
-    yield put({type: 'REGISTER_SUCCESS', payload: action.payload});
-    bottomTabs(data.data);
+    yield put({ type: 'REGISTER_SUCCESS', payload: action.payload });
+    bottomTabs();
   } catch (e) {
-    console.log('err: ', e.response.data.message);
-    yield put({type: 'REGISTER_FAILURE', payload: e.response.data.message});
+    console.log("function*register -> e", e)
+    console.log('err: ', e?.response?.data?.message);
+    yield put({ type: 'REGISTER_FAILURE', payload: e?.response?.data?.message || "Có lỗi xảy ra vui lòng thử lại" });
   }
 }
 

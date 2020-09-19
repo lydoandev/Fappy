@@ -1,0 +1,7 @@
+export const FETCH_PRODUCT_REQUEST = "FETCH_PRODUCT_REQUEST"
+export const FETCH_PRODUCT_SUCCEEDED = "FETCH_PRODUCT_SUCCEEDED"
+export const FETCH_PRODUCT_FAILED = "FETCH_PRODUCT_FAILED"
+
+export const fetchProducts = () => {
+    return { type: FETCH_PRODUCT_REQUEST }
+}

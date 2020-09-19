@@ -19,6 +19,7 @@ export default class SplashScreen extends Component {
     }
 
     onNotification = (notify) => {
+        console.log('hihi')
         const options = {
             playSound: true
         }

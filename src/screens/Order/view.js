@@ -1,47 +1,54 @@
 import React, { Component } from 'react';
 import { SafeAreaView, View, FlatList, StyleSheet, Text, StatusBar, ScrollView, Image, TouchableOpacity } from 'react-native';
 import database from '@react-native-firebase/database'
-import {renderItem} from '../../components/Order/Item'
-
+import { renderItem } from '../../components/Order/Item'
+import _ from 'lodash'
+import { connect } from 'react-redux';
+import { fetchOrders } from '../../redux/orderRedux/actions';
+import Item from '../../components/Order/Item';
 
 
 class OrderList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      items: [],
-      status:''
-    };
+  componentDidMount() {
+    this.props.onFetchOrders();
+    // var order = [];
+    // database()
+    //   .ref(`/orders`)
+    //   .once("value")
+    //   .then(snapshot => {
+    //     snapshot.forEach(function (userSnapshot) {
+    //       var user = userSnapshot.val();
+    //       if (user.seller.id == 'RES1') {
+    //         order.push(user)
+    //       } else {
+    //         console.log('false')
+    //       }
+    //     })
+    //     this.setState({
+    //       items: order
+    //     })
+    //   })
   }
-  render(){
+
+  changeStatus = async (item) => {
+    console.log('item: ', item)
+    await database().ref("orders").child(item.orderId).update(item);
+    this.props.onFetchOrders();
+  }
+
+  render() {
+    let { orders } = this.props.ordering
+    orders = _.orderBy(orders, ["orderDate"], ["desc"])
+    console.log("OrderList -> render -> orders", orders)
     return (
       <SafeAreaView style={styles.container}>
         <FlatList
-          data={this.state.items}
-          renderItem={renderItem}
+          data={orders}
           keyExtractor={item => item.orderId}
+          renderItem={({ item }) => (<Item item={item} changeStatus={this.changeStatus}/>)}
         />
       </SafeAreaView>
     );
-  }
-  componentDidMount(){
-    var order = [];
-    database()
-    .ref(`/orders`)
-    .once("value")
-    .then(snapshot => {
-      snapshot.forEach(function(userSnapshot) {
-        var user = userSnapshot.val();
-        if (user.seller.id == 'RES1') {
-          order.push(user)
-        }else{
-          console.log('false')
-        }
-      }) 
-      this.setState({
-        items : order
-      })
-    })
   }
 }
 const styles = StyleSheet.create({
@@ -51,4 +58,17 @@ const styles = StyleSheet.create({
   }
 });
 
-export default OrderList;
+const mapState = state => {
+  return {
+    ordering: state.ordering,
+    auth: state.userReducer
+  }
+}
+
+const mapDispatch = dispatch => {
+  return {
+    onFetchOrders: () => dispatch(fetchOrders())
+  }
+}
+
+export default connect(mapState, mapDispatch)(OrderList);

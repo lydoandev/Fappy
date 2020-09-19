@@ -1,6 +1,6 @@
 import * as Type from "./action"
 const initialState = {
-  users: [],
+  users: {},
   errs: [],
   isAuthenticated: false
 };
@@ -19,7 +19,7 @@ export const userReducer = (state = initialState, action) => {
       return {...state, users: action.payload};
 
     case 'REGISTER_SUCCESS':
-      return {...state, users: action.payload};
+      return {...state, users: action.payload, isAuthenticated: true};
 
     case 'REGISTER_FAILURE':
       return {...state, errs: action.payload};

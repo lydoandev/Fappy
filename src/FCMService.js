@@ -66,7 +66,8 @@ class FCMService {
     messaging().getInitialNotification()
       .then(remoteMessage => {
         if (remoteMessage) {
-          const notification = remoteMessage.notification
+          const notification = remoteMessage.notification;
+          console.log('hello 1');
           onOpenNotification(notification)
         }
       });
@@ -74,6 +75,7 @@ class FCMService {
     // Foreground state messages
     this.messageListener = messaging().onMessage(async remoteMessage => {
       if (remoteMessage) {
+        console.log('hello 2');
         const notification = remoteMessage.notification
         onNotification(notification)
       }
@@ -81,6 +83,7 @@ class FCMService {
 
     // Trigged when have new token
     messaging().onTokenRefresh(fcmToken => {
+      console.log('hello 3');
       onRegister(fcmToken)
     })
   }

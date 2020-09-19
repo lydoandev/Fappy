@@ -1,76 +1,171 @@
-import React, {Component} from 'react';
-import {Text, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
-import {showModal} from '../../screens/Navigations';
+import React, { Component } from 'react'
+import database from '@react-native-firebase/database'
 
-export default class Item extends Component {
-  moveToDetail = item => {
-    this.props.moveToDetail(item);
-  };
-  addProd = () => {
-    showModal('AddProd');
-  };
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback
+} from 'react-native';
+import { Icon } from 'react-native-elements'
+import moment from 'moment'
+export default class ItemDish extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      modalImageVisible: false,
+      sellerInfo: {}
+    }
+  }
+
+  openImageModal = () => {
+
+    this.setState(prevState => ({
+      ...prevState,
+      modalImageVisible: true
+    }))
+  }
+
+  componentDidMount() {
+    const { sellerId } = this.props.item;
+    var nameRef = '';
+    if (sellerId.includes("RES")) {
+      nameRef = "restaurants/" + sellerId;
+    } else {
+      nameRef = "marketers/" + sellerId;
+    }
+    var ref = database().ref(nameRef)
+    ref.once('value').then(snapshot => {
+      this.setState({
+        sellerInfo: { ...snapshot.val(), id: snapshot.key }
+      })
+    });
+
+  }
+
+
+  closeImage = () => {
+    this.setState(prevState => ({
+      ...prevState,
+      modalImageVisible: false
+    }))
+  }
+
+  moveToUpdateProd = () => {
+    this.props.moveUpdateProd(this.props.item)
+  }
+
+  handleDelete = () => {
+    console.log('Delete nef');
+
+    this.props.deleteItem(this.props.item, "Bạn có chắc chắn xoá sản phẩm này không?");
+  }
+
   render() {
+    const { image, name, quantity, price, createAt } = this.props.item;
+    const { modalImageVisible } = this.state;
+    // var flex = 'column'
+    // this.getInfoSeller();
+
+
     return (
-      <View>
+      <>
         <TouchableOpacity
-          onPress={() => this.moveToDetail(this.props.element)}
-          style={styles.container}>
-          <Image style={styles.img} source={{uri: this.props.element.image}} />
-          <Text style={styles.title}>
-            {this.props.element.name}
-            <Text style={styles.price}> ({this.props.element.price}đ/{this.props.element.unit})</Text>
-          </Text>
-          <Text style={styles.date}>Số lượng : {this.props.element.quantity} {this.props.element.unit}</Text>
-          <Text style={styles.venue}>
-            Tạo lúc: {this.props.element.createAt}
-          </Text>
-          <Text style={styles.venue}>
-            Thời gian sử dụng: {this.props.element.createAt} tiếng kể từ lúc tạo
-          </Text>
+          style={[styles.dish_item, { flexDirection: 'row', width: 300 }]}
+          onPress={this.moveToUpdateProd}>
+          <TouchableOpacity onPress={this.openImageModal}>
+            <Image source={{ uri: image || 'agagaga' }} style={styles.dish_img} />
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'column', width: 180 }}>
+            <View style={{ alignItems: 'flex-end', marginBottom: 0, height: 20, marginLeft: 0 }}>
+              <TouchableOpacity
+                onPress={this.handleDelete}>
+                {/* <Icon
+                  type="entypo"
+                  name="close"
+                  size={19}
+                  color="#F2A90F"
+                /> */}
+                <Text>Dele</Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{ flexDirection: 'column', marginTop: 5, marginLeft: 10 }}>
+              <Text style={styles.title} numberOfLines={1}>
+                {name}
+              </Text>
+              <View style={{ alignItems: 'center', flexDirection: 'row', paddingRight: 7 }}>
+                <Icon
+                  type="entypo"
+                  name="clock"
+                  size={19}
+                  color="#F2A90F"
+                  style={{ marginRight: 5 }}
+                />
+                <Text style={styles.txt}>{moment(createAt).format('DD-MM-YYYY HH:mm:ss')}</Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center'
+                }}>
+                <View style={{ alignItems: 'center', flexDirection: 'row', paddingRight: 7 }}>
+                  <Icon
+                    type="material-community"
+                    name="disqus"
+                    size={19}
+                    color="#F2A90F"
+                    style={{ marginRight: 5 }}
+                  />
+                  <Text style={styles.txt}>{quantity}</Text>
+                </View>
+                <Icon
+                  type="font-awesome"
+                  name="tag"
+                  size={17}
+                  color="#F2A90F"
+                  style={{ marginHorizontal: 5 }}
+                />
+                <Text style={styles.txt}>{String(price).replace(/(.)(?=(\d{3})+$)/g, '$1,')}đ</Text>
+              </View>
+            </View>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={this.addProd}>
-          <Text style={styles.addTxt}>Thêm sản phẩm mới</Text>
-        </TouchableOpacity>
-      </View>
-      
-    );
+      </>
+    )
   }
 }
-
 const styles = StyleSheet.create({
-  container: {
-    margin: 20,
+  dish_item: {
+    marginVertical: 20,
+    marginRight: 13,
   },
-  date: {
-    fontSize: 15,
-    color: '#FF6347',
+  dish_img_big: {
+    width: 250,
+    height: 280,
+    borderRadius: 10,
+    marginRight: 5
+  },
+  dish_img: {
+    width: 130,
+    height: 150,
+    borderRadius: 10,
+    marginRight: 5
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: 'SVN-ProximaNova',
+    fontSize: 18,
+    fontWeight: 'bold'
   },
-  venue: {
+  author: {
+    fontFamily: 'SVN-ProximaNova',
     fontSize: 15,
-    color: '#C0C0C0',
+    color: '#ababab',
   },
-  img: {
-    borderRadius: 20,
-    height: 200,
-  },
-  price: {
-    fontSize: 15,
-    color: '#FF6347',
-    textAlign: 'right',
-    paddingLeft: 20,
-  },
-  addTxt: {
-    color: '#ffffff',
-    fontWeight: "bold",
-    paddingHorizontal: 25,
-    paddingVertical: 10,
-    backgroundColor: "#DAA520",
-    borderRadius: 5,
-    marginHorizontal: 15,
-    textAlign: "center"
+  txt: {
+    fontSize: 17
   }
 });

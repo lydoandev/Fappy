@@ -14,6 +14,7 @@ import AddProd from './Product/add'
 import Splash from './Splash/index'
 import SideMenu from './SideMenu/index'
 import ProductList from './Product/view-list'
+import Notification from './Notification/index'
 
 function ReduxProvider(Component) {
   return props => (
@@ -25,7 +26,7 @@ function ReduxProvider(Component) {
 
 export const registerNav = () => {
   Navigation.registerComponent('SplashScreen', () => SplashScreen);
-  Navigation.registerComponent('ProductList', () => ProductList);
+  Navigation.registerComponent('ProductList', () => ReduxProvider(ProductList), () => ProductList);
   Navigation.registerComponent(
     'Loading',
     () => ReduxProvider(Loading),
@@ -33,9 +34,9 @@ export const registerNav = () => {
   );
 
   Navigation.registerComponent('MainScreen', () => ReduxProvider(MainScreen), () => MainScreen);
-  Navigation.registerComponent('AddProd', () => AddProd);
+  Navigation.registerComponent('AddProd', () => ReduxProvider(AddProd), () => AddProd);
   Navigation.registerComponent('Detail', () => Detail);
-  Navigation.registerComponent('OrderList', () => OrderList);
+  Navigation.registerComponent('OrderList', () => ReduxProvider(OrderList), () => OrderList);
   Navigation.registerComponent(
     'Login',
     () => ReduxProvider(Login),
@@ -60,6 +61,11 @@ export const registerNav = () => {
     'SideMenu',
     () => ReduxProvider(SideMenu),
     () => SideMenu,
+  );
+  Navigation.registerComponent(
+    'Notification',
+    () => ReduxProvider(Notification),
+    () => Notification,
   );
 };
 
@@ -210,7 +216,7 @@ export const showModal = screenName => {
                   text: 'Fappy',
                   alignment: 'center',
                 },
-                rightButtons: [
+                leftButtons: [
                   {
                     id: 'close',
                     icon: require('../assets/image/circled-left.png'),

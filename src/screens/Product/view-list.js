@@ -1,76 +1,121 @@
-import React, {Component} from 'react';
-import {FlatList, ScrollView, View} from 'react-native';
-import {Navigation} from 'react-native-navigation';
+import React, { Component } from 'react';
+import { FlatList, ScrollView, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { Navigation } from 'react-native-navigation';
 import Item from '../../components/Product/Item';
 import database from '@react-native-firebase/database'
+import { connect } from 'react-redux'
+import { fetchProducts } from '../../redux/productRedux/actions'
+import showModal from '../../until/showModal'
+import ModalNotification from '../../components/Product/ModalNotification'
 
-export default class ProductList extends Component {
+class ProductList extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: [],
-      status:''
+      status: '',
+      askDelete: false
     };
   }
-  componentDidMount(){
-    var products = [];
-    database()
-    .ref(`/products`)
-    .once("value")
-    .then(snapshot => {
-      snapshot.forEach(function(prodSnapshot) {
-        var product = prodSnapshot.val();
-        if (product != null){
-          if(product.sellerId == 'RES1') {
-            product['key'] = prodSnapshot.key
-            products.push(product)
-          }else{
-            console.log('falsed')
-          }
-        } 
-      }) 
-      this.setState({
-        items : products
-      })
-    })
+  componentDidMount() {
+    this.props.onFetchProducts();
   }
-  moveToDetail = item => {
-    Navigation.showModal({
-      stack: {
-        children: [
-          {
-            component: {
-              name: 'Detail',
-              passProps: {
-                item,
-              },
-              options: {
-                topBar: {
-                  title: {
-                    text: 'Chi tiết sản phẩm',
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-  };
+
+  moveAddProd = () => {
+    showModal({product: {}}, "AddProd");
+  }
+
+  moveUpdateProd = (product) => {
+    showModal({product, isUpdate: true}, "AddProd")
+  }
+
+  deleteItem = async() => {
+    const { prodDelete } = this.state;
+    
+    const newProd = {
+      ...prodDelete,
+      deleted: true
+    }
+    console.log('Dele', newProd);
+
+    await database().ref("products").child(prodDelete.id).update(newProd);
+    this.props.onFetchProducts();
+    this.changeAskDelete()
+  }
+
+  changeAskDelete = (prodDelete, askMess) => {
+    this.setState(prevState => ({
+      ...prevState,
+      askDelete: !prevState.askDelete,
+      prodDelete,
+      askMess
+    }))
+  }
+
   render() {
+    const {askDelete, askMess} = this.state;
     return (
-      <View>
-        <ScrollView>
+      <>
+        <View style={{ margin: 20 }}>
           <FlatList
-            data={this.state.items}
-            renderItem={({item}) => (
-              <Item element={item} moveToDetail={() => this.moveToDetail(item)} />
+            data={this.props.products}
+            renderItem={({ item }) => (
+              <Item item={item} moveUpdateProd={this.moveUpdateProd} deleteItem={this.changeAskDelete}/>
             )}
           />
-        </ScrollView>
-      </View>
-      
+
+        </View>
+        <ModalNotification
+            modalVisible={askDelete}
+            setModalVisible={this.changeAskDelete}
+            text={askMess}
+            textButton='Có'
+            textButton2='Không'
+            navigateToCall={this.deleteItem}
+          />
+        <View style={styles.bottom}>
+          <TouchableOpacity style={styles.btnOrder} onPress={this.moveAddProd}>
+            <Text style={styles.btnText}>Thêm Sản Phẩm Mới</Text>
+          </TouchableOpacity>
+        </View>
+      </>
     );
   }
 }
+
+const mapState = state => {
+  return {
+    products: state.productReducer.products,
+    auth: state.userReducer
+  }
+}
+
+const mapDispatch = dispatch => {
+  return {
+    onFetchProducts: () => dispatch(fetchProducts())
+  }
+}
+
+const styles = StyleSheet.create({
+  btnOrder: {
+    height: 45,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F2A90F"
+  },
+  btnText: {
+    color: "#ffffff",
+    fontSize: 20
+  },
+  bottom: {
+    position: 'absolute',
+    left: 0, right: 0,
+    bottom: 0,
+    shadowColor: '#111',
+    backgroundColor: '#FFF'
+  },
+})
+
+export default connect(mapState, mapDispatch)(ProductList);
+
 

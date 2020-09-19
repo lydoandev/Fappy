@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {AsyncStorage} from 'react-native';
-import bottomTabs from './Navigations';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 
 export default class Loading extends Component {
@@ -13,10 +12,8 @@ export default class Loading extends Component {
   render() {
     return (
       <View style={[styles.container, styles.horizontal]}>
-        {this.state.showIndicator ? (
+        {this.state.showIndicator && (
           <ActivityIndicator size="large" color="#0000ff" />
-        ) : (
-          bottomTabs()
         )}
       </View>
     );

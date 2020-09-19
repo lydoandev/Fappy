@@ -189,6 +189,7 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation project(':react-native-navigation')
     implementation project(':react-native-push-notification')
+    implementation project(':react-native-vector-icons')
     implementation project(':react-native-svg')
 
     if (enableHermes) {
