@@ -6,6 +6,8 @@ import _ from 'lodash'
 import { connect } from 'react-redux';
 import { fetchOrders } from '../../redux/orderRedux/actions';
 import Item from '../../components/Order/Item';
+import { ORDER_STATUS } from '../../constants/orderStatus';
+import { fetchProducts } from '../../redux/productRedux/actions'
 
 
 class OrderList extends Component {
@@ -31,7 +33,17 @@ class OrderList extends Component {
   }
 
   changeStatus = async (item) => {
-    console.log('item: ', item)
+    if (item.status == ORDER_STATUS.received) {
+      item.items.map( async prod => {
+        const newProd = {
+          ...prod,
+          deleted: true
+        }
+  
+        await database().ref("products").child(prod.id).update(newProd);
+      })
+      this.props.onFetchProducts();
+    }
     await database().ref("orders").child(item.orderId).update(item);
     this.props.onFetchOrders();
   }
@@ -45,7 +57,7 @@ class OrderList extends Component {
         <FlatList
           data={orders}
           keyExtractor={item => item.orderId}
-          renderItem={({ item }) => (<Item item={item} changeStatus={this.changeStatus}/>)}
+          renderItem={({ item }) => (<Item item={item} changeStatus={this.changeStatus} />)}
         />
       </SafeAreaView>
     );
@@ -67,7 +79,8 @@ const mapState = state => {
 
 const mapDispatch = dispatch => {
   return {
-    onFetchOrders: () => dispatch(fetchOrders())
+    onFetchOrders: () => dispatch(fetchOrders()),
+    onFetchProducts: () => dispatch(fetchProducts())
   }
 }
 

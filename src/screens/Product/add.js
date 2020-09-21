@@ -170,6 +170,8 @@ class AddProd extends Component {
   render() {
     const { photo, cateId } = this.state;
     const { isUpdate } = this.props;
+    console.log('This satte: ', this.state);
+    
     return (
       <ScrollView>
         <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 10, flex: 1, margin: 15, flexDirection: 'column' }}>
@@ -199,7 +201,7 @@ class AddProd extends Component {
               <TextInput
                 style={styles.input}
                 onChangeText={text => this.setState({ price: text })}
-                value={parseInt(this.state.price)}
+                value={this.state.price}
                 keyboardType='numeric'
               />
             </View>

@@ -18,7 +18,7 @@ class Notification extends Component {
         console.log('user: ', id)
         this.props.fetchNotification(id);
         console.log(this.props.notifications);
-        setInterval(() => this.props.fetchNotification(id), 1000);
+        // setInterval(() => this.props.fetchNotification(id), 1000);
     }
 
     getNotification = (refreshing = false) => {
