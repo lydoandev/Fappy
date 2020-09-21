@@ -16,8 +16,10 @@ export function* fetchData() {
       })
     yield database().ref('products')
       .on('child_added', snapshot => {
-        if (snapshot.val().deteted && snapshot.val().deteted != true) {
+        console.log('snapshot: ', snapshot.val());
+        if (snapshot.val().deleted != true) {
           products.push({ ...snapshot.val(), id: snapshot.key })
+          console.log('Hiha')
         }
       })
 
