@@ -37,7 +37,7 @@ class Detail extends Component {
     getProductOfRestaurant = async () => {
         const { id } = this.props.sellerInfo;
         var products = await getProductBySeller(id);
-        const index = products.findIndex(item => item.id == this.props.item.id);
+        const index = products.findIndex(item => item.id == this.props.item.id && item.deleted && item.deleted != true);
         products.splice(index, 1);
         this.setState({ relatedDishes: products });
     }
@@ -83,12 +83,16 @@ class Detail extends Component {
         const { id } = this.props.user;
 
         const item = {...this.props.item, quantityOrdered: 1};
+        console.log('Itm: ', item);
+        
 
         var refCart = database().ref('carts');
         refCart.orderByChild("userId")
             .equalTo(id).once('value')
             .then(snapshot => {
                 if (snapshot.val()) {
+                    console.log('Snap: ', snapshot.val());
+                    
                     var { items, sellerId } = Object.values(snapshot.val())[0];
                     if (sellerId != this.props.sellerInfo.id) {
                         this.setModalVisibleExistSeller();
@@ -98,10 +102,13 @@ class Detail extends Component {
                             this.setModalVisibleHaveError("Sản phẩm này đã có trong giỏ hàng");
                         } else {
                             items.push(item);
-                            var keyCart = Object.keys(snapshot.val());
+                            console.log('items: ', items);
+                            
+                            var keyCart = Object.keys(snapshot.val())[0];
                             this.setState({
                                 keyCart
                             })
+                            
                             refCart.child(keyCart).update({ items });
 
                             this.completedAddToCart();

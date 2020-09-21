@@ -12,28 +12,30 @@ export function* fetchData() {
   try {
     yield database().ref('restaurants')
       .on('child_added', snapshot => {
-        restaurants.push({...snapshot.val(), id: snapshot.key})
+        restaurants.push({ ...snapshot.val(), id: snapshot.key })
       })
-      yield database().ref('products')
+    yield database().ref('products')
       .on('child_added', snapshot => {
-        products.push({...snapshot.val(), id: snapshot.key})
+        if (snapshot.val().deteted && snapshot.val().deteted != true) {
+          products.push({ ...snapshot.val(), id: snapshot.key })
+        }
       })
 
-      yield database().ref('marketers')
+    yield database().ref('marketers')
       .on('child_added', snapshot => {
-        marketers.push({...snapshot.val(), id: snapshot.key})
+        marketers.push({ ...snapshot.val(), id: snapshot.key })
       })
-    
+
     restaurants.sort((a, b) => {
       var quantityProd1 = getProductBySeller(a.id);
       console.log("quantityProd1", quantityProd1);
       var quantityProd2 = getProductBySeller(b.id);
       console.log("quantityProd2", quantityProd2);
-      if(quantityProd1 > quantityProd2) return 1;
+      if (quantityProd1 > quantityProd2) return 1;
       return -1;
     })
     console.log('Res affter: ', restaurants);
-    yield put({ type: actions.FETCH_DATA_SUCCESS, payload: {restaurants, marketers, products}});
+    yield put({ type: actions.FETCH_DATA_SUCCESS, payload: { restaurants, marketers, products } });
 
   } catch (error) {
     console.log('Error: ', error);
@@ -67,18 +69,18 @@ export function* fetchOrder(action) {
       .equalTo(user.id).once('value')
       .then(snapshot => {
         if (snapshot.val()) {
-          return {order: snapshot.val(), key: Object.keys(snapshot.val())};
+          return { order: snapshot.val(), key: Object.keys(snapshot.val()) };
         } else return {}
       })
 
-      var result = [];
+    var result = [];
 
-      orders.key?.map(item => {
-        result.push({
-          id: item,
-          ...orders.order[item]
-        })
+    orders.key?.map(item => {
+      result.push({
+        id: item,
+        ...orders.order[item]
       })
+    })
 
     yield put({ type: actions.FETCH_ORDER_SUCCESSED, payload: result });
 
@@ -97,13 +99,13 @@ export function* fetchNotification(action) {
         } else return {}
       })
 
-      var result = [];
+    var result = [];
 
-      notifications.key?.map(item => {
-        result.push({
-          ...notifications.notifications[item]
-        })
+    notifications.key?.map(item => {
+      result.push({
+        ...notifications.notifications[item]
       })
+    })
     yield put({ type: actions.FETCH_NOTIFICATION_SUCCESSED, payload: result });
 
   } catch (error) {
