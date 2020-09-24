@@ -67,6 +67,7 @@ class LogIn extends Component {
       await userRef.orderByChild('phone')
         .equalTo(phone).once('value')
         .then(snapshot => {
+          
           if (snapshot.val()) {
             const user = Object.values(snapshot.val())[0];
             if (user?.password == password) {
