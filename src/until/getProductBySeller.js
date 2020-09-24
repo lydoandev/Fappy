@@ -12,7 +12,10 @@ export default async function getProductBySeller(id) {
     var products = [];
     var keys = Object.keys(refProducts);
     keys.map(key => {
-       products.push({...refProducts[key], id: key})
+        if (refProducts[key].deleted != true) {
+            products.push({ ...refProducts[key], id: key })
+
+        }
     })
     return products
 }

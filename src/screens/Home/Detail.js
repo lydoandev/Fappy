@@ -37,7 +37,7 @@ class Detail extends Component {
     getProductOfRestaurant = async () => {
         const { id } = this.props.sellerInfo;
         var products = await getProductBySeller(id);
-        const index = products.findIndex(item => item.id == this.props.item.id && item.deleted && item.deleted != true);
+        const index = products.findIndex(item => item.id == this.props.item.id);
         products.splice(index, 1);
         this.setState({ relatedDishes: products });
     }

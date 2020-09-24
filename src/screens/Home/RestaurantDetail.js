@@ -39,6 +39,7 @@ class RestaurantDetail extends Component {
 
     componentDidMount() {
         this.getProductOfRestaurant();
+        setInterval(() => this.getProductOfRestaurant(), 1000);
         this.getCommentsOfRestaurant();
     }
 

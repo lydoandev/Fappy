@@ -49,6 +49,7 @@ class OrderDetail extends Component {
             if (snapshot.val() != null) {
                 return Object.values(snapshot.val())[0]
             }
+            return {}
         });
         this.setState({
             comment
