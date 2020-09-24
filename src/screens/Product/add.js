@@ -42,14 +42,14 @@ class AddProd extends Component {
       const { name, cateId, createAt, image, price, quantity, timeUsed, unit } = this.props.product;
       this.setState({
         cateId: cateId || 'CT1',
-        name: name || '',
+        name: name || 'Gà rán nguyên con',
         createAt: createAt || '',
         photo: image || '',
-        price: price || '',
-        quantity: quantity || '',
+        price: price || '20000',
+        quantity: quantity || '1',
         sellerId: this.props.user.storeId,
-        timeUsed: timeUsed || '',
-        unit: unit || ''
+        timeUsed: timeUsed || '3',
+        unit: unit || 'con'
       })
     }
   }

@@ -79,17 +79,17 @@ export default class ItemDish extends Component {
           <TouchableOpacity onPress={this.openImageModal}>
             <Image source={{ uri: image || 'agagaga' }} style={styles.dish_img} />
           </TouchableOpacity>
-          <View style={{ flexDirection: 'column', width: 180 }}>
+          <View style={{ flexDirection: 'column', width: 230 }}>
             <View style={{ alignItems: 'flex-end', marginBottom: 0, height: 20, marginLeft: 0 }}>
               <TouchableOpacity
                 onPress={this.handleDelete}>
-                {/* <Icon
-                  type="entypo"
+                <Icon
+                  type="antdesign"
                   name="close"
-                  size={19}
+                  size={22}
                   color="#F2A90F"
-                /> */}
-                <Text>Dele</Text>
+                  onPress={this.handleDelete}
+                />
               </TouchableOpacity>
             </View>
             <View
